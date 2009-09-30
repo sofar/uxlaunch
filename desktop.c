@@ -177,6 +177,8 @@ void autostart_panels(void)
 void get_session_type(void)
 {
 	/* adjust filter based on what our session cmd is */
+	if (strstr(session, "neskowin"))
+		snprintf(session_filter, 16, "MUX");
 	if (strstr(session, "xfce"))
 		snprintf(session_filter, 16, "XFCE");
 	if (strstr(session, "gnome"))
