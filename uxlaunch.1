@@ -1,0 +1,45 @@
+.TH UXLAUNCH 1 "Sep 29, 2009" "Linux" "uxlaunch manual"
+.SH NAME
+uxlaunch \- program to start the X desktop
+.SH SYNOPSIS
+.B uxlaunch
+.RB [ OPTIONS ]
+.RB [\-\-
+.RB \fBSESSION\fR]
+.SH DESCRIPTION
+.Pp
+\fBuxlaunch\fP is a program that initiates the X server and desktop
+environment. It starts the main component of the desktop up as soon as the
+X server is ready and relies on autostart .desktop files for other
+applications to be started. uxlaunch Was designed to start the Moblin
+desktop but can launch Gnome, Xfce and other desktop sessions as well.
+.SH OPTIONS
+.TP
+\fB\-u [USERNAME]\fR, \fB\-\-user=[USERNAME]
+ specify an alternative user to start the desktop session as. By
+ default, uxlaunch will use the first user accound found through
+ various tests, or the user "moblin" if none valid is found.
+.TP
+\fB\-s [SESSION]\fR, \fB\-\-session=[SESSION]
+ specify an alternative session to start. This overrides the
+ default session (Moblin) and attempts to start [SESSION]
+ instead.
+.TP
+\fB\-t [TTY]\fR, \fB\-\-tty=[TTY]
+ Specify to use tty [TTY] instead of tty2 to run the X server
+ on.
+.TP
+\fB\-v\fR, \fB\-\-verbose
+ Display more information on stderr. All messages go to the
+ logfile (/var/log/uxlaunch.log) in any case.
+.TP
+\fB\-h\fR, \fB\-\-help
+ Display terse usage information.
+ show the help message.
+.SH BUGS
+Send bug reports to <moblin-dev@moblin.org>
+.SH SEE ALSO
+The program is more fully described at http://moblin.org/
+.SH AUTHOR
+uxlaunch was written by Arjan van de Ven <arjan@linux.intel.com>, and
+Auke Kok <auke@linux.intel.com>.
