@@ -8,6 +8,18 @@
 # except in values where they are needed.
 #
 # defaults:
-#user=moblin
-#session=/usr/bin/mutter --sm-disable
-#tty=2
+# user=moblin
+# tty=2
+# session=/usr/bin/mutter --sm-disable
+#
+# standard MOBLIN desktop:
+# session=/usr/bin/mutter --sm-disable
+#
+# GNOME desktop:
+# session=/usr/bin/gnome-session
+#
+# MUX desktop:
+# session=/usr/bin/neskowin
+#
+# XFCE desktop:
+# session=/usr/bin/xfce4-session
