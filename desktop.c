@@ -192,14 +192,14 @@ void get_session_type(void)
  * We need to process all the .desktop files in /etc/xdg/autostart.
  * Simply walk the directory
  */
-void autostart_desktop_files(void)
+void autostart_desktop_files(const char *path)
 {
 	DIR *dir;
 	struct dirent *entry;
 
-	lprintf("Entering autostart_desktop_files");
+	lprintf("Entering autostart_desktop_files: %s", path);
 
-	dir = opendir("/etc/xdg/autostart");
+	dir = opendir(path);
 	if (!dir) {
 		lprintf("Autostart directory not found");
 		return;
@@ -216,7 +216,7 @@ void autostart_desktop_files(void)
 			continue;
 		if (strchr(entry->d_name, '~'))
 			continue;  /* editor backup file */
-		snprintf(filename, 4096, "/etc/xdg/autostart/%s", entry->d_name);
+		snprintf(filename, 4096, "%s/%s", path, entry->d_name);
 		do_desktop_file(filename);
 	}
 	closedir(dir);

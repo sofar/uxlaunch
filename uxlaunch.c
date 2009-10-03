@@ -16,12 +16,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <limits.h>
+#include <pwd.h>
 
 #include "uxlaunch.h"
 
 
 int main(int argc, char **argv)
 {
+	char user_autostart[PATH_MAX];
 	open_log();
 
 	/*
@@ -84,7 +87,10 @@ int main(int argc, char **argv)
 
 	get_session_type();
 	autostart_panels();
-	autostart_desktop_files();
+	autostart_desktop_files("/etc/xdg/autostart");
+	snprintf(user_autostart, PATH_MAX, "/home/%s/.config/autostart",
+		 pass->pw_name);
+	autostart_desktop_files(user_autostart);
 	do_autostart();
 
 	wait_for_X_exit();
