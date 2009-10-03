@@ -20,6 +20,8 @@
 #include <dirent.h>
 #include <time.h>
 #include <glib.h>
+#include <limits.h>
+#include <pwd.h>
 
 #include "uxlaunch.h"
 #if defined(__i386__)
@@ -192,32 +194,72 @@ void get_session_type(void)
  * We need to process all the .desktop files in /etc/xdg/autostart.
  * Simply walk the directory
  */
-void autostart_desktop_files(const char *path)
+void autostart_desktop_files(void)
 {
 	DIR *dir;
 	struct dirent *entry;
+	char user_path[PATH_MAX];
+	char user_file[PATH_MAX];
 
-	lprintf("Entering autostart_desktop_files: %s", path);
+	lprintf("Entering autostart_desktop_files");
 
-	dir = opendir(path);
+	snprintf(user_path, PATH_MAX, "/home/%s/.config/autostart",
+		 pass->pw_name);
+
+	dir = opendir("/etc/xdg/autostart");
 	if (!dir) {
-		lprintf("Autostart directory not found");
-		return;
-	}
+		lprintf("System autostart directory not found");
+	} else {
+		while (1) {
+			char filename[PATH_MAX];
+			entry = readdir(dir);
+			if (!entry)
+				break;
+			if (entry->d_name[0] == '.')
+				continue;
+			if (entry->d_type != DT_REG)
+				continue;
+			if (strchr(entry->d_name, '~'))
+				continue;  /* editor backup file */
 
-	while (1) {
-		char filename[PATH_MAX];
-		entry = readdir(dir);
-		if (!entry)
-			break;
-		if (entry->d_name[0] == '.')
-			continue;
-		if (entry->d_type != DT_REG)
-			continue;
-		if (strchr(entry->d_name, '~'))
-			continue;  /* editor backup file */
-		snprintf(filename, 4096, "%s/%s", path, entry->d_name);
-		do_desktop_file(filename);
+			/* 
+			 * filter - don't run this file if same-named
+			 * file exists in user_path
+			 */
+			snprintf(user_file, PATH_MAX, "%s/%s", user_path,
+				 entry->d_name);
+			if (!access(user_file, R_OK))
+				continue;
+	
+			snprintf(filename, PATH_MAX, "/etc/xdg/autostart/%s",
+				 entry->d_name);
+			do_desktop_file(filename);
+		}
+	}
+	closedir(dir);
+	
+	snprintf(user_path, PATH_MAX, "/home/%s/.config/autostart",
+		 pass->pw_name);
+	dir = opendir(user_path);
+	if (!dir) {
+		lprintf("User autostart directory not found");
+	} else {
+		while (1) {
+			char filename[PATH_MAX];
+			entry = readdir(dir);
+			if (!entry)
+				break;
+			if (entry->d_name[0] == '.')
+				continue;
+			if (entry->d_type != DT_REG)
+				continue;
+			if (strchr(entry->d_name, '~'))
+				continue;  /* editor backup file */
+			snprintf(filename, PATH_MAX, "%s/%s", user_path,
+				 entry->d_name);
+			do_desktop_file(filename);
+		}
+
 	}
 	closedir(dir);
 }
