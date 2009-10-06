@@ -98,6 +98,8 @@ int main(int argc, char **argv)
 
 	/* Make sure that we clean up after ourselves */
 	sleep(2);
+
+	lprintf("Terminating uxlaunch and all children");
 	kill(0, SIGKILL);
 
 	return EXIT_SUCCESS;

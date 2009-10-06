@@ -192,6 +192,7 @@ void start_X_server(void)
 	ret = fork();
 	if (ret) {
 		xpid = ret;
+		lprintf("Started Xorg[%d]", xpid);
 		/* setup sighandler for main thread */
 		memset(&term, 0, sizeof(struct sigaction));
 		term.sa_handler = termhandler;
@@ -254,13 +255,26 @@ void wait_for_X_signal(void)
 void wait_for_X_exit(void)
 {	
 	int ret;
+	int status;
+
 	lprintf("wait_for_X_exit");
 	while (!exiting) {
-		ret = waitpid(0, NULL, 0);
-		if (ret == xpid)
+		ret = waitpid(-1, &status, 0);
+
+		if (WIFEXITED(status))
+			lprintf("process %d exited with exit code %d",
+				ret, WEXITSTATUS(status));
+		if (WIFSIGNALED(status))
+			lprintf("process %d was killed by signal %d",
+				ret, WTERMSIG(status));
+		if (WIFCONTINUED(status))
+			lprintf("process %d continued");
+
+		if (ret == xpid) {
+			lprintf("Xorg[%d] exited, cleaning up", ret);
 			break;
+		}
 	}
-	lprintf("X exited");
 }
 
 void set_text_mode(void)
