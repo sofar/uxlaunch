@@ -274,6 +274,11 @@ void wait_for_X_exit(void)
 			lprintf("Xorg[%d] exited, cleaning up", ret);
 			break;
 		}
+		if (ret == session_pid) {
+			lprintf("Session process [%d] exited, cleaning up",
+				ret);
+			kill(xpid, SIGTERM);
+		}
 	}
 }
 
