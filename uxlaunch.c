@@ -51,13 +51,14 @@ int main(int argc, char **argv)
 	get_options(argc, argv);
 	set_tty();
 
+	start_oom_task();
+
 	setup_pam_session();
 
 	setup_xauth();
 
 	switch_to_user();
-
-
+	
 	start_X_server();
 
 	/*
@@ -87,6 +88,19 @@ int main(int argc, char **argv)
 	autostart_desktop_files();
 	do_autostart();
 
+	/*
+	 * we do this now to make sure dbus etc are not spawning
+	 * dbus-activated
+	 * tasks at non-oomkillable priorities
+	 */
+
+	oom_adj(xpid, -17);
+	oom_adj(session_pid, -17);
+	oom_adj(getpid(), -17);
+
+	/*
+	 * The desktop session runs here
+	 */
 	wait_for_X_exit();
 
 	set_text_mode();
@@ -95,6 +109,7 @@ int main(int argc, char **argv)
 	stop_ssh_agent();
 	stop_dbus_session_bus();
 	close_pam_session();
+	stop_oom_task();
 
 	/* Make sure that we clean up after ourselves */
 	sleep(2);

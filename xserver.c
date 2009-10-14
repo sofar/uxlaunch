@@ -43,7 +43,7 @@ Xauth x_auth;
 static pthread_mutex_t notify_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t notify_condition = PTHREAD_COND_INITIALIZER;
 
-static int xpid;
+int xpid;
 
 #define XAUTH_DIR "/var/run/uxlaunch"
 

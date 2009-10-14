@@ -20,6 +20,7 @@ extern char session[];
 extern char username[];
 
 extern int session_pid;
+extern int xpid;
 
 extern int verbose;
 
@@ -47,6 +48,10 @@ extern void start_desktop_session(void);
 extern void start_bash(void);
 extern void wait_for_X_exit(void);
 extern void set_text_mode(void);
+
+extern void oom_adj(int, int);
+extern void start_oom_task(void);
+extern void stop_oom_task(void);
 
 extern void open_log(void);
 extern void lprintf(const char *, ...);
