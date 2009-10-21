@@ -181,6 +181,7 @@ void start_X_server(void)
 	char *xserver = NULL;
 	int ret;
 	char vt[80];
+	char xorg_log[PATH_MAX];
 	struct stat statbuf;  
 
 	/* Step 1: arm the signal */
@@ -222,6 +223,8 @@ void start_X_server(void)
 
 	snprintf(vt, 80, "vt%d", tty);
 
+	snprintf(xorg_log, PATH_MAX, "/tmp/Xorg.0.%s.log", pass->pw_name);
+
 	/* Step 4: start the X server */
 	ret = stat(xserver, &statbuf);
 	if (!ret && (statbuf.st_mode & S_ISUID)) {
@@ -229,7 +232,7 @@ void start_X_server(void)
 		      "-nolisten", "tcp", "-dpi", "120", vt, NULL);
 	} else {
 		execl(xserver, xserver,  displayname, "-nr", "-verbose", "-auth", user_xauth_path,
-		      "-nolisten", "tcp", "-dpi", "120", "-logfile", "/tmp/Xorg.0.log", "-nohwaccess", vt, NULL);
+		      "-nolisten", "tcp", "-dpi", "120", "-logfile", xorg_log, "-nohwaccess", vt, NULL);
 	}
 	exit(0);
 }
