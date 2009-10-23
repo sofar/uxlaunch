@@ -158,24 +158,6 @@ static void do_desktop_file(const char *filename)
 }
 
 
-void autostart_panels(void)
-{
-
-	if (!strstr(session_filter, "MOBLIN"))
-		return;
-	if (!strstr(session, "mutter"))
-		return;
-
-	desktop_entry_add("/usr/libexec/moblin-panel-myzone", -1);
-	desktop_entry_add("/usr/libexec/moblin-panel-status", 0);
-	desktop_entry_add("/usr/libexec/moblin-panel-people", 0);
-	desktop_entry_add("/usr/libexec/moblin-panel-internet", 0);
-	desktop_entry_add("/usr/libexec/moblin-panel-media", 1);
-	desktop_entry_add("/usr/libexec/moblin-panel-pasteboard", 0);
-	desktop_entry_add("/usr/libexec/moblin-panel-applications", 1);
-}
-
-
 void get_session_type(void)
 {
 	/* adjust filter based on what our session cmd is */

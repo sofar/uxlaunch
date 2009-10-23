@@ -41,7 +41,6 @@ extern void stop_ssh_agent(void);
 extern void start_gconf(void);
 extern void maybe_start_screensaver(void);
 extern void get_session_type(void);
-extern void autostart_panels(void);
 extern void autostart_desktop_files(void);
 extern void do_autostart(void);
 extern void start_desktop_session(void);
