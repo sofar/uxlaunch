@@ -124,14 +124,14 @@ static void do_desktop_file(const char *filename)
 			break;
 		c = strchr(line, '\n');
 		if (c) *c = 0;
-		if (strstr(line, "Exec="))
-			strncpy(exec, line+5, 4095);
+		if (strncmp(line, "Exec=", strlen("Exec=")))
+			strncpy(exec, g_shell_unquote(line+5, NULL), 4095);
 
-		if (strstr(line, "OnlyShowIn"))
+		if (strncmp(line, "OnlyShowIn", strlen("OnlyShowIn")))
 			if (strstr(line, session_filter) == NULL)
 				show = 0;
 
-		if (strstr(line, "NotShowIn")) {
+		if (strncmp(line, "NotShowIn", strlen("NotShowIn"))) {
 			if (strstr(line, session_filter))
 				show = 0;
 			/* for moblin, hide stuff hidden to gnome */
@@ -140,7 +140,8 @@ static void do_desktop_file(const char *filename)
 					show = 0;
 		}
 
-		if (strstr(line, "X-Moblin-Priority")) {
+		if (strncmp(line, "X-Moblin-Priority",
+			    strlen("X-Moblin-Priority"))) {
 			if (strstr(line, "Highest"))
 				prio = -1;
 			if (strstr(line, "High"))
