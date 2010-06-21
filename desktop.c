@@ -43,7 +43,7 @@
 
 
 int session_pid;
-char session_filter[16] = "MOBLIN";
+char session_filter[16] = "MEEGO-NB";
 static int delay = 0;
 
 /*
@@ -168,9 +168,17 @@ static void do_desktop_file(const char *filename)
 		return;
 	onlyshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "OnlyShowIn", NULL);
 	notshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "NotShowIn", NULL);
-	prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-Priority", NULL);
-	onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-OnlyStartIfFileExists", NULL);
-	dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
+	prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-MeeGo-Priority", NULL);
+	if (!prio_key)
+		prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-Priority", NULL);
+
+	onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-OnlyStartIfFileExists", NULL);
+	if (!onlystart_key)
+		onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-OnlyStartIfFileExists", NULL);
+
+	dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-DontStartIfFileExists", NULL);
+	if (!dontstart_key)
+		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
 
 	if (onlyshowin_key)
 		if (!g_strstr_len(onlyshowin_key, -1, session_filter))
@@ -179,7 +187,7 @@ static void do_desktop_file(const char *filename)
 		if (g_strstr_len(notshowin_key, -1, session_filter))
 			show = 0;
 		/* for MeeGo, hide stuff hidden to gnome */
-		if (!strcmp(session_filter, "MOBLIN"))
+		if (!strcmp(session_filter, "MEEGO-NB"))
 			if (g_strstr_len(notshowin_key, -1, "GNOME"))
 				show = 0;
 	}
@@ -222,7 +230,7 @@ void get_session_type(void)
 		snprintf(session_filter, 16, "GNOME");
 	if (strstr(session, "kde"))
 		snprintf(session_filter, 16, "KDE");
-	/* default == MOBLIN */
+	/* default == MEEGO-NB */
 }
 
 
