@@ -31,6 +31,8 @@
 #  define __NR_ioprio_set 251
 #elif defined(__arm__)
 #  define __NR_ioprio_set 314
+#elif defined (__powerpc__)
+#  define __NR_ioprio_set 273
 #else
 #  error "Unsupported arch"
 #endif
