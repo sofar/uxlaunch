@@ -84,11 +84,11 @@ static int ecryptfs_mounted()
 }
 
 
-static void start_greeter (void)
+static void start_greeter(void)
 {
 	int ret;
 
-	init_screensaver (1);
+	init_screensaver(1);
 	/* wait for screensaver to close */
 	ret = system("/usr/bin/gnome-screensaver-command --wait");
 	if (ret)
