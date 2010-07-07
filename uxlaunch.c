@@ -132,6 +132,8 @@ int main(int argc, char **argv)
 	close_pam_session();
 	stop_oom_task();
 
+	unlink(xauth_cookie_file);
+
 	/* Make sure that we clean up after ourselves */
 	sleep(2);
 
