@@ -43,7 +43,7 @@
 
 
 int session_pid;
-char session_filter[16] = "MEEGO-NB";
+char session_filter[16] = "X-MEEGO-NB";
 static int delay = 0;
 
 /*
@@ -187,7 +187,7 @@ static void do_desktop_file(const char *filename)
 		if (g_strstr_len(notshowin_key, -1, session_filter))
 			show = 0;
 		/* for MeeGo, hide stuff hidden to gnome */
-		if (!strcmp(session_filter, "MEEGO-NB"))
+		if (!strcmp(session_filter, "X-MEEGO-NB"))
 			if (g_strstr_len(notshowin_key, -1, "GNOME"))
 				show = 0;
 	}
@@ -219,19 +219,17 @@ void get_session_type(void)
 	/* adjust filter based on what our session cmd is */
 	//FIXME: this needs to be mapped by xsession desktop files
 	//FIXME: in the same way the gnome session is defined
-	if (strstr(session, "duicompositor"))
-		snprintf(session_filter, 16, "X-DUI");
-	if (strstr(session, "ivi"))
-		snprintf(session_filter, 16, "X-IVI");
+	if (strstr(session, "mompositor"))
+		snprintf(session_filter, 16, "X-MEEGO-HS");
 	if (strstr(session, "neskowin"))
-		snprintf(session_filter, 16, "X-MUX");
+		snprintf(session_filter, 16, "X-MUX"); /* old */
 	if (strstr(session, "xfce"))
 		snprintf(session_filter, 16, "XFCE");
 	if (strstr(session, "gnome"))
 		snprintf(session_filter, 16, "GNOME");
 	if (strstr(session, "kde"))
 		snprintf(session_filter, 16, "KDE");
-	/* default == MEEGO-NB */
+	/* default == X-MEEGO-NB */
 }
 
 
