@@ -99,6 +99,50 @@ static void do_env(void)
 	pclose(file);
 }
 
+#define BACKLIGHT_CLASS "/sys/class/backlight"
+#define BACKLIGHT_FILE "brightness"
+
+static void set_backlight_driver_perms(const char *backlight_dir_path)
+{
+	char backlight_file_path[PATH_MAX];
+	int ret;
+
+	snprintf(backlight_file_path, sizeof(backlight_file_path),
+		 "%s/%s", backlight_dir_path, BACKLIGHT_FILE);
+
+	ret = chown(backlight_dir_path, pass->pw_uid, pass->pw_gid);
+	if (ret)
+		lprintf("Failed to set \"%s\" ownership", backlight_dir_path);
+
+	ret = chown(backlight_file_path, pass->pw_uid, pass->pw_gid);
+	if (ret)
+		lprintf("Failed to set \"%s\" ownership", backlight_file_path);
+}
+
+static void set_backlight_perms(const char *backlight_class)
+{
+	DIR *dir;
+	struct dirent *entry;
+	char backlight_dir_path[PATH_MAX];
+
+	dir = opendir(backlight_class);
+	if (dir) {
+		while (NULL != (entry = readdir (dir))) {
+			if (entry->d_name && entry->d_name[0] != '.' &&
+			    entry->d_type == DT_LNK) {
+
+				snprintf(backlight_dir_path,
+					 sizeof (backlight_dir_path),
+					 "%s/%s", backlight_class,
+					  entry->d_name);
+				set_backlight_driver_perms(backlight_dir_path);
+			}
+		}
+		closedir (dir);
+	} else {
+		lprintf ("Failed to opendir(\"%s\")", backlight_class);
+	}
+}
 
 /*
  * Change from root (as we started) to the target user.
@@ -122,6 +166,9 @@ void switch_to_user(void)
 	ret = chown(displaydev, pass->pw_uid, pass->pw_gid);
 	if (ret)
 		lprintf("Failed to fix /dev/tty permission");
+
+	/* make sure the user owns the X backlight devices */
+	set_backlight_perms (BACKLIGHT_CLASS);
 
 	if (!((setgid(pass->pw_gid) == 0) && (setuid(pass->pw_uid) == 0)))
 		exit(EXIT_FAILURE);
