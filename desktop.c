@@ -198,13 +198,14 @@ static void do_desktop_file(const char *filename)
 		if (file_expand_exists(dontstart_key))
 			show = 0;
 	if (prio_key) {
-		if (g_strstr_len(prio_key, -1, "Highest"))
+		gchar *p = g_utf8_casefold(prio_key, g_utf8_strlen(prio_key, -1));
+		if (g_strstr_len(p, -1, "Highest"))
 			prio = -1;
-		else if (g_strstr_len(prio_key, -1, "High"))
+		else if (g_strstr_len(p, -1, "High"))
 			prio = 0;
-		else if (g_strstr_len(prio_key, -1, "Low"))
+		else if (g_strstr_len(p, -1, "Low"))
 			prio = 2;
-		else if (g_strstr_len(prio_key, -1, "Late"))
+		else if (g_strstr_len(p, -1, "Late"))
 			prio = 3;
 	}
 
