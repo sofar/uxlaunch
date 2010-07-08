@@ -219,7 +219,7 @@ void get_session_type(void)
 	/* adjust filter based on what our session cmd is */
 	//FIXME: this needs to be mapped by xsession desktop files
 	//FIXME: in the same way the gnome session is defined
-	if (strstr(session, "mompositor"))
+	if (strstr(session, "mcompositor"))
 		snprintf(session_filter, 16, "X-MEEGO-HS");
 	if (strstr(session, "neskowin"))
 		snprintf(session_filter, 16, "X-MUX"); /* old */
