@@ -103,6 +103,17 @@ void start_gconf(void)
 		lprintf("failed to start gconftool-2: %d", ret);
 }
 
+/*
+ * Stop gconfd to save gconf keys before shutdown
+ */
+void stop_gconf(void)
+{
+	int ret;
+
+	ret = system("gconftool-2 --shutdown");
+	if (ret)
+		lprintf("failed to shut down gconf %d", ret);
+}
 
 void init_screensaver(int lock_now)
 {
