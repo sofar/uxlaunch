@@ -85,10 +85,10 @@ int main(int argc, char **argv)
 	get_options(argc, argv);
 
 	if (x_session_only) {
- 		launch_user_session();
- 		wait_for_session_exit();
- 		stop_gconf();
- 		return 0;
+		launch_user_session();
+		wait_for_session_exit();
+		stop_gconf();
+		return 0;
 	}
 
 	setup_xauth();
