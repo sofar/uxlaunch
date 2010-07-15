@@ -174,8 +174,8 @@ void get_options(int argc, char **argv)
 	lprintf("user \"%s\", tty #%d, session \"%s\"", username, tty, session);
 
 	pass = getpwnam(username);
-	if (!pass)
+	if (!pass) {
+		lprintf("Error: can't find user \"%s\"", username);
 		exit(EXIT_FAILURE);
-
-
+	}
 }
