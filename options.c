@@ -29,6 +29,7 @@ char session[256] = "/usr/bin/mutter --sm-disable";
 char username[256] = "meego";
 
 int verbose = 0;
+int x_session_only = 0;
 
 static struct option opts[] = {
 	{ "user",    1, NULL, 'u' },
@@ -46,6 +47,7 @@ void usage(const char *name)
 	printf("  -u, --user      Start session as specific username\n");
 	printf("  -t, --tty       Start session on alternative tty number\n");
 	printf("  -s, --session   Start a non-default session\n");
+	printf("  -x, --xsession  Start X apps inside an existing X session\n");
 	printf("  -v, --verbose   Display lots of output to the console\n");
 	printf("  -h, --help      Display this help message\n");
 }
@@ -132,7 +134,7 @@ void get_options(int argc, char **argv)
 
 	/* parse cmdline - overrides */
 	while (1) {
-		c = getopt_long(argc, argv, "u:t:s:hv", opts, &i);
+		c = getopt_long(argc, argv, "u:t:s:hvx", opts, &i);
 		if (c == -1)
 			break;
 
@@ -153,6 +155,11 @@ void get_options(int argc, char **argv)
 		case 'v':
 			verbose = 1;
 			break;
+		case 'x':
+			x_session_only = 1;
+			if (getenv ("USER"))
+				strncpy (username, getenv ("USER"), 256);
+			break;
 		default:
 			break;
 		}
@@ -170,7 +177,9 @@ void get_options(int argc, char **argv)
 		}
 	}
 
-	lprintf("uxlaunch v%s started.", VERSION);
+	open_log(!x_session_only ? LOGFILE : NULL);
+
+	lprintf("uxlaunch v%s started%s.", VERSION, x_session_only ? " for x session only" : "" );
 	lprintf("user \"%s\", tty #%d, session \"%s\"", username, tty, session);
 
 	pass = getpwnam(username);

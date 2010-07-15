@@ -20,13 +20,44 @@
 
 #include "uxlaunch.h"
 
-
-int main(int argc, char **argv)
+/*
+ * Launch apps that form the user's X session
+ */
+static void
+launch_user_session(void)
 {
 	char xhost_cmd[80];
 
-	open_log();
+	setup_user_environment();
 
+	start_ssh_agent();
+
+	setup_consolekit_session();
+
+	/* dbus needs the CK env var */
+	start_dbus_session_bus();
+
+	/* gconf needs dbus */
+	start_gconf();
+
+	maybe_start_screensaver();
+
+	start_desktop_session();
+
+	/* finally, set local username to be allowed at any time,
+	 * which is not depenedent on hostname changes */
+	snprintf(xhost_cmd, 80, "/usr/bin/xhost +SI:localuser:%s",
+		 pass->pw_name);
+	if (system(xhost_cmd) != 0)
+		lprintf("%s failed", xhost_cmd);
+
+	get_session_type();
+	autostart_desktop_files();
+	do_autostart();
+}
+
+int main(int argc, char **argv)
+{
 	/*
 	 * General objective:
 	 * Do the things that need root privs first,
@@ -52,6 +83,13 @@ int main(int argc, char **argv)
 	 */
 
 	get_options(argc, argv);
+
+	if (x_session_only) {
+ 		launch_user_session();
+ 		wait_for_session_exit();
+ 		stop_gconf();
+ 		return 0;
+	}
 
 	setup_xauth();
 
@@ -81,33 +119,9 @@ int main(int argc, char **argv)
 	 * so can happen while X is talking to the
 	 * hardware
 	 */
-
 	wait_for_X_signal();
 
-	start_ssh_agent();
-
-	setup_consolekit_session();
-
-	/* dbus needs the CK env var */
-	start_dbus_session_bus();
-
-	/* gconf needs dbus */
-	start_gconf();
-
-	maybe_start_screensaver();
-
-	start_desktop_session();
-
-	/* finally, set local username to be allowed at any time,
-	 * which is not depenedent on hostname changes */
-	snprintf(xhost_cmd, 80, "/usr/bin/xhost +SI:localuser:%s",
-		 pass->pw_name);
-	if (system(xhost_cmd) != 0)
-		lprintf("%s failed", xhost_cmd);
-
-	get_session_type();
-	autostart_desktop_files();
-	do_autostart();
+	launch_user_session();
 
 	/*
 	 * we do this now to make sure dbus etc are not spawning

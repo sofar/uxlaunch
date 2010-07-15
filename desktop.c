@@ -17,8 +17,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <dirent.h>
 #include <time.h>
+#include <errno.h>
 #include <glib.h>
 #include <limits.h>
 #include <pwd.h>
@@ -401,6 +403,24 @@ void do_autostart(void)
 	}
 }
 
+void wait_for_session_exit(void)
+{
+	lprintf("wait_for_session_exit");
+	for (;;) {
+		errno = 0;
+		if (waitpid (session_pid, NULL, 0) < 0) {
+			if (errno == EINTR) {
+				continue;
+			} else if (errno == ECHILD)
+				break; /* child already reaped */
+			else
+				lprintf("waidpid error '%s'", strerror (errno));
+		}
+		break;
+	}
+
+	lprintf("session exited");
+}
 
 void start_desktop_session(void)
 {

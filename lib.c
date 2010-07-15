@@ -24,8 +24,6 @@
 #include "uxlaunch.h"
 
 
-#define LOGFILE "/var/log/uxlaunch.log"
-
 extern char **environ;
 
 static int first_time = 1;
@@ -36,10 +34,14 @@ struct timeval start;
 static FILE *log;
 
 
-void open_log(void)
+void open_log(const char *logfile)
 {
 	/* truncate log */
 	log = fopen(LOGFILE, "w");
+	if (!logfile)
+		log = stdout;
+	else
+		log = fopen(logfile, "w");
 	if (!log)
 		logfile_enabled = 0;
 }

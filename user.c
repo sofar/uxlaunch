@@ -52,13 +52,6 @@ static void do_env(void)
 	setenv("PATH", buf, 1);
 	snprintf(user_xauth_path, PATH_MAX, "%s/.Xauthority", pass->pw_dir);
 	setenv("XAUTHORITY", user_xauth_path, 1);
-	snprintf(buf, PATH_MAX, "%s/.cache", pass->pw_dir);
-	mkdir(buf, 0700);
-	setenv("XDG_CACHE_HOME", buf, 0);
-	snprintf(buf, PATH_MAX, "%s/.config", pass->pw_dir);
-	setenv("XDG_CONFIG_HOME", buf, 0);
-	setenv("OOO_FORCE_DESKTOP","gnome", 0);
-	setenv("LIBC_FATAL_STDERR_", "1", 0);
 
 	file = popen("/bin/bash -l -c export", "r");
 	if (!file)
@@ -200,11 +193,33 @@ void switch_to_user(void)
 
 static char *scim_languages[] = { "zh_", "ja_", "ko_", "lo_", "th_" };
 
+void setup_user_environment (void)
+{
+	unsigned int i;
+	char buf[PATH_MAX];
+	const char *lang = getenv ("LANG");
+
+	for (i = 0; i < sizeof(scim_languages) / sizeof(scim_languages[0]); i++) {
+		if (strstr (lang, scim_languages[i])) {
+			setenv("GTK_IM_MODULE", "scim-bridge", 0);
+			setenv("CLUTTER_IM_MODULE","scim-bridge", 0);
+		}
+	}
+
+	/* setup misc. user directories and variables */
+	snprintf(buf, PATH_MAX, "%s/.cache", pass->pw_dir);
+	mkdir(buf, 0700);
+	setenv("XDG_CACHE_HOME", buf, 0);
+	snprintf(buf, PATH_MAX, "%s/.config", pass->pw_dir);
+	setenv("XDG_CONFIG_HOME", buf, 0);
+	setenv("OOO_FORCE_DESKTOP","gnome", 0);
+	setenv("LIBC_FATAL_STDERR_", "1", 0);
+}
+
 void set_i18n(void)
 {
 	FILE *f;
 	lprintf("entering set_i18n");
-
 
 	/*
 	 * /etc/sysconfig/i18n contains shell code that sets
@@ -235,16 +250,8 @@ void set_i18n(void)
 
 			/* grab the stuff we need, avoiding comments
 			 * and other user stuff we don't care for now */
-			if (!strcmp(key, "LANG")) {
-				unsigned int i;
+			if (!strcmp(key, "LANG"))
 				setenv(key, val, 1);
-				for (i = 0; i < sizeof(scim_languages) / sizeof(scim_languages[0]); i++) {
-					if (strstr(val, scim_languages[i])) {
-						setenv("GTK_IM_MODULE", "scim-bridge", 0);
-						setenv("CLUTTER_IM_MODULE","scim-bridge", 0);
-					}
-				}
-			}
 			if (!strcmp(key, "SYSFONT"))
 				setenv(key, val, 1);
 		}
