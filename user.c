@@ -166,7 +166,8 @@ void switch_to_user(void)
 	if (!((setgid(pass->pw_gid) == 0) && (setuid(pass->pw_uid) == 0)))
 		exit(EXIT_FAILURE);
 
-	setsid();
+	if (setsid() == -1)
+		lprintf("Unable to setsid()");
 
 	do_env();
 
