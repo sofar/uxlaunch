@@ -199,8 +199,8 @@ void setup_user_environment (void)
 	char buf[PATH_MAX];
 	const char *lang = getenv ("LANG");
 
-	for (i = 0; i < sizeof(scim_languages) / sizeof(scim_languages[0]); i++) {
-		if (strstr (lang, scim_languages[i])) {
+	for (i = 0; lang && i < sizeof(scim_languages) / sizeof(scim_languages[0]); i++) {
+		if (strstr(lang, scim_languages[i])) {
 			setenv("GTK_IM_MODULE", "scim-bridge", 0);
 			setenv("CLUTTER_IM_MODULE","scim-bridge", 0);
 		}
