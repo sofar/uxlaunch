@@ -69,8 +69,6 @@ void setup_consolekit_session(void)
 	 * put the session cookie up as an environment variable
 	 */
 	setenv("XDG_SESSION_COOKIE", ck_connector_get_cookie(connector), 1);
-
-	log_environment();
 }
 
 

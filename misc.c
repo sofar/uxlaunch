@@ -68,7 +68,6 @@ void start_ssh_agent(void)
 		}
 	}
 	pclose(file);
-	log_environment();
 }
 
 void stop_ssh_agent(void)

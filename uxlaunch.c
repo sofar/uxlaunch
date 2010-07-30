@@ -40,6 +40,8 @@ launch_user_session(void)
 	/* gconf needs dbus */
 	start_gconf();
 
+	log_environment();
+
 	maybe_start_screensaver();
 
 	start_desktop_session();

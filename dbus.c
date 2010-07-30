@@ -64,8 +64,6 @@ void start_dbus_session_bus(void)
 
 	setenv("DBUS_SESSION_BUS_PID", dbus_pid, 1);
 	setenv("DBUS_SESSION_BUS_ADDRESS", dbus_address, 1);
-
-	log_environment();
 }
 
 void stop_dbus_session_bus(void)

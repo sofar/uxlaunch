@@ -166,6 +166,8 @@ void switch_to_user(void)
 	if (!((setgid(pass->pw_gid) == 0) && (setuid(pass->pw_uid) == 0)))
 		exit(EXIT_FAILURE);
 
+	if (setpgid(0, 0) == -1)
+		lprintf("Unable to setpgid()");
 	if (setsid() == -1)
 		lprintf("Unable to setsid()");
 
@@ -258,6 +260,4 @@ void set_i18n(void)
 		}
 		fclose(f);
 	}
-
-	log_environment();
 }
