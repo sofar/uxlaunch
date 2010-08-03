@@ -191,6 +191,8 @@ void switch_to_user(void)
 		fclose(fp);
 		fp = freopen(fn, "w", stdout);
 		fp = freopen(fn, "w", stderr);
+	} else {
+		lprintf("Unable to open \"%s\n\" for writing", fn);
 	}
 }
 
