@@ -163,8 +163,15 @@ void switch_to_user(void)
 	/* make sure the user owns the X backlight devices */
 	set_backlight_perms (BACKLIGHT_CLASS);
 
-	if (!((setgid(pass->pw_gid) == 0) && (setuid(pass->pw_uid) == 0)))
+	if (!((setgid(pass->pw_gid) == 0) && (setuid(pass->pw_uid) == 0))) {
+		lprintf("Fatal: Unable to setgid()/setuid()\n");
 		exit(EXIT_FAILURE);
+	}
+
+	if (access(pass->pw_dir, R_OK || W_OK || X_OK) != 0) {
+		lprintf("Fatal: \"%s\" has incompatible permissions", pass->pw_dir);
+		exit(EXIT_FAILURE);
+	}
 
 	if (setpgid(0, 0) == -1)
 		lprintf("Unable to setpgid()");
