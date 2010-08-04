@@ -154,7 +154,6 @@ static void do_desktop_file(const char *filename)
 	gchar *onlystart_key;
 	gchar *dontstart_key;
 
-	int show = 1;
 	int prio = 1; /* medium/normal prio */
 
 	lprintf("Parsing %s", filename);
@@ -182,23 +181,6 @@ static void do_desktop_file(const char *filename)
 	if (!dontstart_key)
 		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
 
-	if (onlyshowin_key)
-		if (!g_strstr_len(onlyshowin_key, -1, session_filter))
-			show = 0;
-	if (notshowin_key) {
-		if (g_strstr_len(notshowin_key, -1, session_filter))
-			show = 0;
-		/* for MeeGo, hide stuff hidden to gnome */
-		if (!strcmp(session_filter, "X-MEEGO-NB"))
-			if (g_strstr_len(notshowin_key, -1, "GNOME"))
-				show = 0;
-	}
-	if (onlystart_key)
-		if (!file_expand_exists(onlystart_key))
-			show = 0;
-	if (dontstart_key)
-		if (file_expand_exists(dontstart_key))
-			show = 0;
 	if (prio_key) {
 		gchar *p = g_utf8_casefold(prio_key, g_utf8_strlen(prio_key, -1));
 		if (g_strstr_len(p, -1, "highest"))
@@ -211,8 +193,25 @@ static void do_desktop_file(const char *filename)
 			prio = 3;
 	}
 
-	if (show)
-		desktop_entry_add(g_shell_unquote(exec_key, &error), prio);
+	if (onlyshowin_key)
+		if (!g_strstr_len(onlyshowin_key, -1, session_filter))
+			return;
+	if (notshowin_key) {
+		if (g_strstr_len(notshowin_key, -1, session_filter))
+			return;
+		/* for MeeGo, hide stuff hidden to gnome */
+		if (!strcmp(session_filter, "X-MEEGO-NB"))
+			if (g_strstr_len(notshowin_key, -1, "GNOME"))
+				return;
+	}
+	if (onlystart_key)
+		if (!file_expand_exists(onlystart_key))
+			return;
+	if (dontstart_key)
+		if (file_expand_exists(dontstart_key))
+			return;
+
+	desktop_entry_add(g_shell_unquote(exec_key, &error), prio);
 }
 
 
