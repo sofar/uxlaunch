@@ -212,13 +212,15 @@ void start_X_server(void)
 	 */
 	signal(SIGUSR1, SIG_IGN);
 
-	if (!xserver && !access("/usr/bin/Xorg", X_OK))
-		xserver = "/usr/bin/Xorg";
-	if (!xserver && !access("/usr/bin/X", X_OK))
-		xserver = "/usr/bin/X";
 	if (!xserver) {
-		lprintf("No X server found!");
-		_exit(EXIT_FAILURE);
+		if (!access("/usr/bin/Xorg", X_OK))
+			xserver = "/usr/bin/Xorg";
+		else if (!access("/usr/bin/X", X_OK))
+			xserver = "/usr/bin/X";
+		else {
+			lprintf("No X server found!");
+			_exit(EXIT_FAILURE);
+		}
 	}
 
 	snprintf(vt, 80, "vt%d", tty);
