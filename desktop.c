@@ -223,13 +223,13 @@ void get_session_type(void)
 	//FIXME: in the same way the gnome session is defined
 	if (strstr(session, "mcompositor"))
 		snprintf(session_filter, 16, "X-MEEGO-HS");
-	if (strstr(session, "neskowin"))
+	else if (strstr(session, "neskowin"))
 		snprintf(session_filter, 16, "X-MUX"); /* old */
-	if (strstr(session, "xfce"))
+	else if (strstr(session, "xfce"))
 		snprintf(session_filter, 16, "XFCE");
-	if (strstr(session, "gnome"))
+	else if (strstr(session, "gnome"))
 		snprintf(session_filter, 16, "GNOME");
-	if (strstr(session, "kde"))
+	else if (strstr(session, "kde"))
 		snprintf(session_filter, 16, "KDE");
 	/* default == X-MEEGO-NB */
 }
