@@ -58,10 +58,10 @@ static int grep(const char *filename, const char *pattern)
 		printf("n: %d\n", buf_n);
 		if (strstr(buf, pattern)) {
 			ret = 0;
-			goto out;
+			break;
 		}
 	}
-out:
+
 	free(buf);
 	fclose(f);
 	return ret;
