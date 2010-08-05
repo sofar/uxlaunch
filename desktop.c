@@ -181,18 +181,6 @@ static void do_desktop_file(const char *filename)
 	if (!dontstart_key)
 		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
 
-	if (prio_key) {
-		gchar *p = g_utf8_casefold(prio_key, g_utf8_strlen(prio_key, -1));
-		if (g_strstr_len(p, -1, "highest"))
-			prio = -1;
-		else if (g_strstr_len(p, -1, "high"))
-			prio = 0;
-		else if (g_strstr_len(p, -1, "low"))
-			prio = 2;
-		else if (g_strstr_len(p, -1, "late"))
-			prio = 3;
-	}
-
 	if (onlyshowin_key)
 		if (!g_strstr_len(onlyshowin_key, -1, session_filter))
 			return;
@@ -210,6 +198,18 @@ static void do_desktop_file(const char *filename)
 	if (dontstart_key)
 		if (file_expand_exists(dontstart_key))
 			return;
+
+	if (prio_key) {
+		gchar *p = g_utf8_casefold(prio_key, g_utf8_strlen(prio_key, -1));
+		if (g_strstr_len(p, -1, "highest"))
+			prio = -1;
+		else if (g_strstr_len(p, -1, "high"))
+			prio = 0;
+		else if (g_strstr_len(p, -1, "low"))
+			prio = 2;
+		else if (g_strstr_len(p, -1, "late"))
+			prio = 3;
+	}
 
 	desktop_entry_add(g_shell_unquote(exec_key, &error), prio);
 }
