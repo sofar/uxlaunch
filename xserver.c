@@ -47,6 +47,8 @@ int xpid;
 
 #define XAUTH_DIR "/var/run/uxlaunch"
 
+static volatile int exiting = 0;
+
 /*
  * We need to know the DISPLAY and TTY values to use, for passing
  * to PAM, ConsoleKit but also X.
@@ -145,8 +147,6 @@ static void usr1handler(int foo)
 	pthread_mutex_unlock(&notify_mutex);
 }
 
-
-static volatile int exiting = 0;
 
 static void termhandler(int foo)
 {
