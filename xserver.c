@@ -278,7 +278,7 @@ void wait_for_X_exit(void)
 			lprintf("process %d was killed by signal %d",
 				ret, WTERMSIG(status));
 		if (WIFCONTINUED(status))
-			lprintf("process %d continued");
+			lprintf("process %d continued", ret);
 
 		if (ret == xpid) {
 			lprintf("Xorg[%d] exited, cleaning up", ret);
