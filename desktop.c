@@ -171,6 +171,8 @@ static void do_desktop_file(const char *filename)
 	notshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "NotShowIn", NULL);
 	prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-MeeGo-Priority", NULL);
 	if (!prio_key)
+		prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-Priority", NULL);
+	if (!prio_key)
 		prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-Priority", NULL);
 
 	onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-OnlyStartIfFileExists", NULL);
