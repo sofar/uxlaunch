@@ -55,6 +55,7 @@ static int delay = 0;
 #define DELAY_UNIT 50000
 
 struct desktop_entry_struct {
+	gchar *file;
 	gchar *exec;
 	int prio;
 };
@@ -92,7 +93,7 @@ static int file_expand_exists(const char *path)
 	return 0;
 }
 
-static void desktop_entry_add(gchar *exec, int prio)
+static void desktop_entry_add(const gchar *file, const gchar *exec, int prio)
 {
 	GList *item;
 	struct desktop_entry_struct *entry;
@@ -101,10 +102,9 @@ static void desktop_entry_add(gchar *exec, int prio)
 	item = g_list_first(desktop_entries);
 	while (item) {
 		entry = item->data;
-		if (!strcmp(entry->exec, exec)) {
-			lprintf("Duplicate entry %s", exec);
-			return;
-		}
+		if (!strcmp(entry->file, file))
+			/* overwrite existing entry with higher priority */
+			goto overwrite;
 		item = g_list_next(item);
 	}
 
@@ -113,9 +113,13 @@ static void desktop_entry_add(gchar *exec, int prio)
 		lprintf("Error allocating memory for desktop entry");
 		return;
 	}
+
+overwrite:
 	entry->prio = prio; /* panels start at highest prio */
 	entry->exec = g_strdup(exec);
-	lprintf("Adding %s with prio %d", entry->exec, entry->prio);
+	entry->file = g_strdup(file);
+	if (entry->exec)
+		lprintf("Adding %s with prio %d", entry->file, entry->prio);
 	desktop_entries = g_list_prepend(desktop_entries, entry);
 }
 
@@ -128,7 +132,11 @@ gint sort_entries(gconstpointer a, gconstpointer b)
 		return 1;
 	if (A->prio < B->prio)
 		return -1;
-	return strcmp(A->exec, B->exec);
+	if (A->exec && B->exec)
+		return strcmp(A->exec, B->exec);
+	if (A->exec)
+		return 1;
+	return -1;
 }
 
 
@@ -142,7 +150,7 @@ gint sort_entries(gconstpointer a, gconstpointer b)
  *   (this allows KDE etc systems to hide stuff for GNOME as they do today and not show it
  *    on moblin)
  */
-static void do_desktop_file(const char *filename)
+static void do_desktop_file(const gchar *dir, const gchar *file)
 {
 
 	GKeyFile *keyfile;
@@ -153,6 +161,9 @@ static void do_desktop_file(const char *filename)
 	gchar *prio_key;
 	gchar *onlystart_key;
 	gchar *dontstart_key;
+	gchar *filename = NULL;
+
+	filename = g_strdup_printf("%s/%s", dir, file);
 
 	int prio = 1; /* medium/normal prio */
 
@@ -166,7 +177,8 @@ static void do_desktop_file(const char *filename)
 
 	exec_key = g_key_file_get_string(keyfile, "Desktop Entry", "Exec", NULL);
 	if (!exec_key)
-		return;
+		goto hide;
+
 	onlyshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "OnlyShowIn", NULL);
 	notshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "NotShowIn", NULL);
 	prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-MeeGo-Priority", NULL);
@@ -184,22 +196,23 @@ static void do_desktop_file(const char *filename)
 		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
 
 	if (onlyshowin_key)
-		if (!g_strstr_len(onlyshowin_key, -1, session_filter))
-			return;
+		if (!g_strstr_len(onlyshowin_key, -1, session_filter)) {
+			goto hide;
+	}
 	if (notshowin_key) {
 		if (g_strstr_len(notshowin_key, -1, session_filter))
-			return;
+			goto hide;
 		/* for MeeGo, hide stuff hidden to gnome */
 		if (!strcmp(session_filter, "X-MEEGO-NB"))
 			if (g_strstr_len(notshowin_key, -1, "GNOME"))
-				return;
+				goto hide;
 	}
 	if (onlystart_key)
 		if (!file_expand_exists(onlystart_key))
-			return;
+			goto hide;
 	if (dontstart_key)
 		if (file_expand_exists(dontstart_key))
-			return;
+			goto hide;
 
 	if (prio_key) {
 		gchar *p = g_utf8_casefold(prio_key, g_utf8_strlen(prio_key, -1));
@@ -213,7 +226,14 @@ static void do_desktop_file(const char *filename)
 			prio = 3;
 	}
 
-	desktop_entry_add(g_shell_unquote(exec_key, &error), prio);
+	goto nohide;
+hide:
+	exec_key = NULL;
+	prio = -1;
+nohide:
+	desktop_entry_add(file, g_shell_unquote(exec_key, &error), prio);
+
+	g_free(filename);
 }
 
 
@@ -235,6 +255,31 @@ void get_session_type(void)
 	/* default == X-MEEGO-NB */
 }
 
+void do_dir(const gchar *dir)
+{
+	DIR *d;
+	struct dirent *entry;
+
+	d = opendir(dir);
+	if (!d) {
+		lprintf("autostart directory \"%s\" not found", dir);
+	} else {
+		while (1) {
+			entry = readdir(d);
+			if (!entry)
+				break;
+			if (entry->d_name[0] == '.')
+				continue;
+			if (entry->d_type != DT_REG)
+				continue;
+			if (strchr(entry->d_name, '~'))
+				continue;  /* editor backup file */
+
+			do_desktop_file(dir, entry->d_name);
+		}
+	}
+	closedir(d);
+}
 
 /*
  * We need to process all the .desktop files in /etc/xdg/autostart.
@@ -242,72 +287,42 @@ void get_session_type(void)
  */
 void autostart_desktop_files(void)
 {
-	DIR *dir;
-	struct dirent *entry;
-	char user_path[PATH_MAX];
-	char user_file[PATH_MAX];
+	gchar *xdg_config_dirs = NULL;
+	gchar *xdg_config_home = NULL;
+	gchar **xdg_config_dir = NULL;
+	gchar *x = NULL;
+	int count = 0;
 
 	lprintf("Entering autostart_desktop_files");
 
-	snprintf(user_path, PATH_MAX, "/home/%s/.config/autostart",
-		 pass->pw_name);
+	if (getenv("XDG_CONFIG_HOME"))
+		xdg_config_home = g_strdup(getenv("XDG_CONFIG_HOME"));
+	else
+		xdg_config_home = g_strdup_printf("%s/autostart", getenv("XDG_CONFIG_HOME"));
 
-	dir = opendir("/etc/xdg/autostart");
-	if (!dir) {
-		lprintf("System autostart directory not found");
-	} else {
-		while (1) {
-			char filename[PATH_MAX];
-			entry = readdir(dir);
-			if (!entry)
-				break;
-			if (entry->d_name[0] == '.')
-				continue;
-			if (entry->d_type != DT_REG)
-				continue;
-			if (strchr(entry->d_name, '~'))
-				continue;  /* editor backup file */
+	if (getenv("XDG_CONFIG_DIRS"))
+		xdg_config_dirs = g_strdup(getenv("XDG_CONFIG_DIRS"));
+	else
+		xdg_config_dirs = g_strdup("/etc/xdg");
 
-			/*
-			 * filter - don't run this file if same-named
-			 * file exists in user_path
-			 */
-			snprintf(user_file, PATH_MAX, "%s/%s", user_path,
-				 entry->d_name);
-			if (!access(user_file, R_OK))
-				continue;
+	/* count how many dirs are listed, so we can iterate backwards */
+	xdg_config_dir = g_strsplit(xdg_config_dirs, ";", -1);
+	g_assert(xdg_config_dir);
+	while (xdg_config_dir[count])
+		count++;
 
-			snprintf(filename, PATH_MAX, "/etc/xdg/autostart/%s",
-				 entry->d_name);
-			do_desktop_file(filename);
-		}
+	while (count > 0) {
+		x = g_strdup_printf("%s/autostart", xdg_config_dir[--count]);
+		do_dir(x);
+		g_free(x);
 	}
-	closedir(dir);
 
-	snprintf(user_path, PATH_MAX, "/home/%s/.config/autostart",
-		 pass->pw_name);
-	dir = opendir(user_path);
-	if (!dir) {
-		lprintf("User autostart directory not found");
-	} else {
-		while (1) {
-			char filename[PATH_MAX];
-			entry = readdir(dir);
-			if (!entry)
-				break;
-			if (entry->d_name[0] == '.')
-				continue;
-			if (entry->d_type != DT_REG)
-				continue;
-			if (strchr(entry->d_name, '~'))
-				continue;  /* editor backup file */
-			snprintf(filename, PATH_MAX, "%s/%s", user_path,
-				 entry->d_name);
-			do_desktop_file(filename);
-		}
+	x = g_strdup_printf("%s/autostart", xdg_config_home);
+	do_dir(x);
+	g_free(x);
 
-	}
-	closedir(dir);
+	g_strfreev(xdg_config_dir);
+	g_free(xdg_config_home);
 }
 
 
@@ -366,6 +381,12 @@ void do_autostart(void)
 		int late = 0;
 
 		entry = item->data;
+
+		if (!entry->exec) {
+			/* hidden item */
+			item = g_list_next(item);
+			continue;
+		}
 
 		if (entry->prio >= 3) {
 			if (!late) {
