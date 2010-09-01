@@ -12,11 +12,12 @@
  * of the License.
  */
 
+#define _GNU_SOURCE
+#include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <pwd.h>
@@ -173,7 +174,7 @@ void switch_to_user(void)
 		exit(EXIT_FAILURE);
 	}
 
-	if (setpgid(0, 0) == -1)
+	if (setpgid(0, getpgid(getppid())) == -1)
 		lprintf("Unable to setpgid()");
 	if (setsid() == -1)
 		lprintf("Unable to setsid()");
