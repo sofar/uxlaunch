@@ -54,10 +54,17 @@ static int delay = 0;
  */
 #define DELAY_UNIT 50000
 
+/* watchdog types */
+#define WD_NONE 0
+#define WD_HALT 1
+#define WD_RESTART 2
+#define WD_FAIL 3
+
 struct desktop_entry_struct {
 	gchar *file;
 	gchar *exec;
 	int prio;
+	int watchdog;
 };
 
 static GList *desktop_entries;
@@ -93,7 +100,7 @@ static int file_expand_exists(const char *path)
 	return 0;
 }
 
-static void desktop_entry_add(const gchar *file, const gchar *exec, int prio)
+static void desktop_entry_add(const gchar *file, const gchar *exec, int prio, int wd)
 {
 	GList *item;
 	struct desktop_entry_struct *entry;
@@ -118,6 +125,7 @@ overwrite:
 	entry->prio = prio; /* panels start at highest prio */
 	entry->exec = g_strdup(exec);
 	entry->file = g_strdup(file);
+	entry->watchdog = wd;
 	if (entry->exec)
 		lprintf("Adding %s with prio %d", entry->file, entry->prio);
 	desktop_entries = g_list_prepend(desktop_entries, entry);
@@ -161,7 +169,9 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	gchar *prio_key;
 	gchar *onlystart_key;
 	gchar *dontstart_key;
+	gchar *wd_key;
 	gchar *filename = NULL;
+	int wd = 0;
 
 	filename = g_strdup_printf("%s/%s", dir, file);
 
@@ -224,6 +234,23 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 			prio = 2;
 		else if (g_strstr_len(p, -1, "late"))
 			prio = 3;
+		else
+			lprintf("Unknown value for key X-MeeGo-Priority: %s", prio_key);
+	}
+
+	wd_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-Watchdog", NULL);
+	if (!wd_key)
+		wd_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-MeeGo-Watchdog", NULL);
+	if (wd_key) {
+		gchar *p = g_utf8_casefold(wd_key, g_utf8_strlen(wd_key, -1));
+		if (g_strstr_len(p, -1, "halt"))
+			wd = WD_HALT;
+		else if (g_strstr_len(p, -1, "restart"))
+			wd = WD_RESTART;
+		else if (g_strstr_len(p, -1, "fail"))
+			wd = WD_FAIL;
+		else
+			lprintf("Unknown value for key X-Meego-Watchdog: %s", wd_key);
 	}
 
 	goto nohide;
@@ -231,7 +258,7 @@ hide:
 	exec_key = NULL;
 	prio = -1;
 nohide:
-	desktop_entry_add(file, g_shell_unquote(exec_key, &error), prio);
+	desktop_entry_add(file, g_shell_unquote(exec_key, &error), prio, wd);
 
 	g_free(filename);
 }
@@ -367,6 +394,7 @@ void do_autostart(void)
 {
 	GList *item;
 	struct desktop_entry_struct *entry;
+	int restarts = 0;
 
 	lprintf("Entering do_autostart");
 
@@ -380,6 +408,8 @@ void do_autostart(void)
 		int count = 0;
 		int ret = 0;
 		int late = 0;
+		int pid;
+		int status;
 
 		entry = item->data;
 
@@ -421,8 +451,53 @@ void do_autostart(void)
 
 		usleep(delay);
 		lprintf("Starting %s with prio %d at %d", entry->exec, entry->prio, delay);
-		execvp(ptrs[0], ptrs);
-		exit(ret);
+
+		/* watchdog handling */
+		if (entry->watchdog == WD_NONE) {
+			execvp(ptrs[0], ptrs);
+			exit(ret);
+		}
+
+restart:
+		pid = fork();
+		if (pid == 0) {
+			execvp(ptrs[0], ptrs);
+			lprintf("Failed to execvp(%s)", entry->exec);
+			exit(EXIT_FAILURE);
+		} else if (pid < 0) {
+			lprintf("Failed to fork for task %s", entry->exec);
+			exit(EXIT_FAILURE);
+		}
+
+		/* stop and wait for child to exit */
+		ret = waitpid(pid, &status, 0);
+
+		if (WIFEXITED(status))
+			lprintf("process %d exited with exit code %d",
+				ret, WEXITSTATUS(status));
+
+		if (WIFSIGNALED(status))
+			lprintf("process %d was killed by signal %d",
+				ret, WTERMSIG(status));
+
+		if (((entry->watchdog == WD_FAIL) && (WEXITSTATUS(status))) ||
+		    ((entry->watchdog == WD_FAIL) && (WIFSIGNALED(status))) ||
+		     (entry->watchdog == WD_RESTART)) {
+			/* safety: reasonable sleep here */
+			sleep((restarts++ < 5) ? restarts : 900); /* 15 mins */
+			lprintf("Watchdog: restarting %s task", entry->exec);
+			goto restart;
+		}
+
+		if (entry->watchdog == WD_HALT) {
+			/* tear down the session */
+			lprintf("Watchdog: %s task exited, tearing down session", entry->exec);
+			kill(session_pid, SIGTERM);
+			exit(EXIT_FAILURE);
+		}
+
+		lprintf("Watchdog: unhandled exception");
+		exit(EXIT_FAILURE);
 	}
 }
 

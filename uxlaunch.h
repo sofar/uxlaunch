@@ -4,6 +4,7 @@
 #include <X11/Xauth.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <glib.h>
 
 /*
  * Target user information

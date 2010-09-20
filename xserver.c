@@ -34,6 +34,7 @@
 #include "uxlaunch.h"
 
 #include <X11/Xauth.h>
+#include <glib.h>
 
 char displaydev[PATH_MAX];	/* "/dev/tty1" */
 char displayname[256] = ":0";	/* ":0" */
