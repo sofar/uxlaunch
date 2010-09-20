@@ -245,7 +245,7 @@ void start_X_server(void)
 	}
 
 	/* dpi */
-	if (!strcmp(dpinum, "auto")) {
+	if (strcmp(dpinum, "auto")) {
 		ptrs[++count] = strdup("-dpi");
 		ptrs[++count] = dpinum;
 	}
