@@ -280,7 +280,7 @@ void get_session_type(void)
 	else if (strstr(session, "kde"))
 		snprintf(session_filter, 16, "KDE");
 	/* default == X-MEEGO-NB */
-	setenv("X_MEEGO_SESSION", session, 1);
+	setenv("X_DESKTOP_SESSION", session_filter, 1);
 }
 
 void do_dir(const gchar *dir)

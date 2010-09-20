@@ -40,6 +40,8 @@ launch_user_session(void)
 	/* gconf needs dbus */
 	start_gconf();
 
+	get_session_type();
+
 	log_environment();
 
 	maybe_start_screensaver();
@@ -53,7 +55,6 @@ launch_user_session(void)
 	if (system(xhost_cmd) != 0)
 		lprintf("%s failed", xhost_cmd);
 
-	get_session_type();
 	autostart_desktop_files();
 	do_autostart();
 }
