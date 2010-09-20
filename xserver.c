@@ -184,6 +184,8 @@ void start_X_server(void)
 	char vt[80];
 	char xorg_log[PATH_MAX];
 	struct stat statbuf;
+	char *ptrs[32];
+	int count = 0;
 
 	/* Step 1: arm the signal */
 	memset(&usr1, 0, sizeof(struct sigaction));
@@ -228,21 +230,41 @@ void start_X_server(void)
 
 	snprintf(xorg_log, PATH_MAX, "/tmp/Xorg.0.%s.log", pass->pw_name);
 
-	/* Step 4: start the X server */
+	/* assemble command line */
+	memset(ptrs, 0, sizeof(ptrs));
+
+	ptrs[0] = xserver;
+
+	ptrs[++count] = displayname;
+
+	/* non-suid root Xorg? */
 	ret = stat(xserver, &statbuf);
-	if (!ret && (statbuf.st_mode & S_ISUID)) {
-		execl(xserver, xserver,  displayname,
-		      "-nolisten", "tcp", "-dpi", "120", "-noreset",
-		      "-auth", xauth_cookie_file,
-		      vt, NULL);
-	} else {
-		execl(xserver, xserver,  displayname,
-		      "-nolisten", "tcp", "-dpi", "120", "-noreset",
-		      "-auth", user_xauth_path,
-		      "-logfile", xorg_log,
-		      vt, NULL);
+	if (!(!ret && (statbuf.st_mode & S_ISUID))) {
+		ptrs[++count] = strdup("-logfile");
+		ptrs[++count] = xorg_log;
 	}
-	exit(0);
+
+	/* dpi */
+//	if (dpi) {
+		ptrs[++count] = strdup("-dpi");
+		ptrs[++count] = strdup("120"); // dpinum;
+//	}
+
+//	if (tcp) {
+		ptrs[++count] = strdup("-nolisten");
+		ptrs[++count] = strdup("tcp");
+//	}
+
+	ptrs[++count] = strdup("-noreset");
+
+	ptrs[++count] = strdup("-auth");
+	ptrs[++count] = user_xauth_path;
+
+	ptrs[++count] = vt;
+
+	execv(ptrs[0], ptrs);
+
+	exit(EXIT_FAILURE);
 }
 
 /*
