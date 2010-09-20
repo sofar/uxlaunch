@@ -27,6 +27,7 @@
 int tty = 2;
 char session[256] = "/usr/bin/mutter --sm-disable";
 char username[256] = "meego";
+char dpinum[256] = "120";
 
 int verbose = 0;
 int x_session_only = 0;
@@ -128,6 +129,8 @@ void get_options(int argc, char **argv)
 				tty = atoi(val);
 			if (!strcmp(key, "session"))
 				strncpy(session, val, 256);
+			if (!strcmp(key, "dpi"))
+				strncpy(dpinum, val, 256);
 		}
 		fclose(f);
 	}

@@ -245,15 +245,13 @@ void start_X_server(void)
 	}
 
 	/* dpi */
-//	if (dpi) {
+	if (!strcmp(dpinum, "auto")) {
 		ptrs[++count] = strdup("-dpi");
-		ptrs[++count] = strdup("120"); // dpinum;
-//	}
+		ptrs[++count] = dpinum;
+	}
 
-//	if (tcp) {
-		ptrs[++count] = strdup("-nolisten");
-		ptrs[++count] = strdup("tcp");
-//	}
+	ptrs[++count] = strdup("-nolisten");
+	ptrs[++count] = strdup("tcp");
 
 	ptrs[++count] = strdup("-noreset");
 

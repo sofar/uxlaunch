@@ -20,6 +20,7 @@ extern char user_xauth_path[];
 extern int tty;
 extern char session[];
 extern char username[];
+extern char dpinum[];
 
 extern int session_pid;
 extern int xpid;
