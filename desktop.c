@@ -465,7 +465,7 @@ restart:
 			lprintf("Failed to execvp(%s)", entry->exec);
 			exit(EXIT_FAILURE);
 		} else if (pid < 0) {
-			lprintf("Failed to fork for task %s", entry->exec);
+			lprintf("Failed to fork for %s", entry->exec);
 			exit(EXIT_FAILURE);
 		}
 
@@ -473,25 +473,25 @@ restart:
 		ret = waitpid(pid, &status, 0);
 
 		if (WIFEXITED(status))
-			lprintf("process %d exited with exit code %d",
-				ret, WEXITSTATUS(status));
+			lprintf("process %d (%s) exited with exit code %d",
+				ret, entry->exec, WEXITSTATUS(status));
 
 		if (WIFSIGNALED(status))
-			lprintf("process %d was killed by signal %d",
-				ret, WTERMSIG(status));
+			lprintf("process %d (%s) was killed by signal %d",
+				ret, entry->exec, WTERMSIG(status));
 
 		if (((entry->watchdog == WD_FAIL) && (WEXITSTATUS(status))) ||
 		    ((entry->watchdog == WD_FAIL) && (WIFSIGNALED(status))) ||
 		     (entry->watchdog == WD_RESTART)) {
 			/* safety: reasonable sleep here */
 			sleep((restarts++ < 5) ? restarts : 900); /* 15 mins */
-			lprintf("Watchdog: restarting %s task", entry->exec);
+			lprintf("Watchdog: restarting %s", entry->exec);
 			goto restart;
 		}
 
 		if (entry->watchdog == WD_HALT) {
 			/* tear down the session */
-			lprintf("Watchdog: %s task exited, tearing down session", entry->exec);
+			lprintf("Watchdog: %s exited, tearing down session", entry->exec);
 			kill(session_pid, SIGTERM);
 			exit(EXIT_FAILURE);
 		}
