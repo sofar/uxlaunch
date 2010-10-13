@@ -8,38 +8,79 @@ uxlaunch \- program to start the X desktop
 .RB \fBSESSION\fR]
 .SH DESCRIPTION
 .Pp
-\fBuxlaunch\fP is a program that initiates the X server and desktop
-environment. It starts the main component of the desktop up as soon as the
-X server is ready and relies on autostart .desktop files for other
-applications to be started. uxlaunch Was designed to start the Moblin
-desktop but can launch Gnome, Xfce and other desktop sessions as well.
+\fBuxlaunch\fP is a program that initiates the X server and desktop environment. It starts the main component of the desktop up as soon as the X server is ready and relies on autostart .desktop files for other applications to be started. uxlaunch Was designed to start the Moblin desktop but can launch Gnome, Xfce and other desktop sessions as well.
+.TP
+uxlaunch Works as a generic session launcher and prepares dbus, ssh-agent and ConsoleKit for the user session, launches the Xorg server, and then hands over session management to a session process (usually a main component such as mutter, the window mananger or something like xfce4-session. uxlaunch Also initializes the environment variables as close as it can to what a normal shell login would set.
+.TP
+After starting the session process, user startup applications are processed following the freedesktop.org Desktop File standard, starting up applications one by one.
+.TP
+Finally, uxlaunch cleans up the session if any of the session process, or X server process dies, and attempts to clean up all that was started properly. uxlaunch Does not restart itself for a new session, it relies on an external watchdog or baby sitter process to relaunch itself, such ash sysvinit or upstart.
 .SH OPTIONS
 .TP
 \fB\-u [USERNAME]\fR, \fB\-\-user=[USERNAME]
- specify an alternative user to start the desktop session as. By
- default, uxlaunch will use the first user accound found through
- various tests, or the user "meego" if none valid is found.
+specify an alternative user to start the desktop session as. By default, uxlaunch will use the first user accound found through various tests, or the user "meego" if none valid is found.
 .TP
 \fB\-s [SESSION]\fR, \fB\-\-session=[SESSION]
- specify an alternative session to start. This overrides the
- default session (Moblin) and attempts to start [SESSION]
- instead.
+specify an alternative session to start. This overrides the default session (Moblin) and attempts to start [SESSION] instead.
 .TP
 \fB\-t [TTY]\fR, \fB\-\-tty=[TTY]
- Specify to use tty [TTY] instead of tty2 to run the X server
- on.
+Specify to use tty [TTY] instead of tty2 to run the X server on.
 .TP
 \fB\-v\fR, \fB\-\-verbose
- Display more information on stderr. All messages go to the
- logfile (/var/log/uxlaunch.log) in any case.
+Display more information on stderr. All messages go to the logfile (/var/log/uxlaunch.log) in any case.
 .TP
 \fB\-h\fR, \fB\-\-help
  Display terse usage information.
  show the help message.
+.SH INVOCATION
+uxlaunch Is designed to be started from /etc/inittab. Normally, uxlaunch should be added as a runlevel 5 task, started as root, and restarted when needed. This can be achieved by adding the following line to /etc/inttab:
+.TP
+    x:5:respawn:/usr/sbin/uxlaunch
+.SH CONFIGURATION
+uxlaunch configuration is done through \fB/etc/sysconfig/uxlaunch\fP. The file closely matches the command line options and allows you to specify most of the same parameters. The format of this file is simple "key=value" pairs:
+.TP
+\fBuser=[USERNAME]
+.TP
+\fBsession=[SESSION]
+.TP
+\fBtty=[TTY]
+See \fBOPTIONS\fP for a description of these settings.
+.TP
+\fBdpi=[auto|DPI VALUE]
+This option allows the user to override the default (120) dpi value used by uxlaunch. Either a numeric value (e.g. 96) or the special word "auto" can be used. If "auto" is specified, uxlaunch will defer the dpi setting to the XOrg server, which will attempt to autodetect your display size from the monitor and set an appropriate dpi value.
+.SH APPLICATION STARTUP
+uxlaunch Supports desktop session startup by processing the files relevant to the freedesktop.org Desktop File Standard. uxlaunch Tries to honor the settings in XDG_CONFIG_HOME and XDG_CONFIG_DIRS and will retreive values from the users shell settings. After this and the session executable startup, uxlaunch will process autostart xdg files in the appropriate locations, prioritizing the users's override locations over default system wide startup file locations.
+.SH DESKTOP FILE EXTENSIONS
+uxlaunch Supports a few extended key/value pairs in desktop autostart files to enhance the desktop startup process:
+.TP
+\fBX-MeeGo-Priority=[Highest|High|Low|Late]
+Prioritize startup of this application to be immediate (Highest), or in subsequent lower priority brackets (High, Low, Late). Each application in a bracket is only started after all the applications in the previous bracket are started, and a certain timeout has been waited. The time between applications becomes larger for lower priorities, and can be up to minutes for applications in the "late" bracket.
+.TP
+\fBX-Meego-Watchdog=[Halt|Restart|Fail]
+Attach a watchdog to the application. The watchdog can perform several actions based on the exit conditions of the application. Normally when an application exits, nothing happens. If "restart" is set, the application is restarted no matter what exit condition happened. If "fail" is set, the application is restarted if it returned an exit condition (non-0 exit code).  If "halt" is set, the session is shut down if the application exits. This allows a critical application to generate a session restart or shutdown condition.
+.TP
+\fBX-MeesGo-OnlyStartIfFileExists=[path]
+.TP
+\fBX-MeesGo-DontStartIfFileExists=[path]
+Make the startup of the application conditional on whether a file exists (OnlyStartIf...) or conditional on whether a file does not exist (DontStart...).
+.SH ENVIRONMENT
+uxlaunch Copies the user's shell environment over to the session it starts by starting a subshell for the user and preserving the environment variables.  Several variables influence how uxlaunch works:
+.TP
+\fBXDG_CONFIG_HOME
+.TP
+\fBXDG_CONFIG_DIRS
+See the freedesktop.org standard for how these variables influence application startup.
+.TP
+\fBX_DESKTOP_SESSION
+Records the session name used in the current session. For use in programs that need to determine what session is running through this method.
+.TP
+\fBLANG
+.TP
+\fBSYSFONT
+These two variables are set by reading \fB/etc/sysconfig/i18n\fP and parsing the content.
 .SH BUGS
 Send bug reports to <meego-dev@meego.com>
 .SH SEE ALSO
 The program is more fully described at http://meego.com/
 .SH AUTHOR
-uxlaunch was written by Arjan van de Ven <arjan@linux.intel.com>, and
-Auke Kok <auke@linux.intel.com>.
+uxlaunch was written by Arjan van de Ven <arjan@linux.intel.com>, and Auke Kok <auke@linux.intel.com>.
