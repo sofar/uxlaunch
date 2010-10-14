@@ -61,6 +61,7 @@ extern void start_oom_task(void);
 extern void stop_oom_task(void);
 
 #define LOGFILE "/var/log/uxlaunch.log"
+#define LOGBACKUPFILE "/var/log/uxlaunch.1.log"
 
 extern void open_log(const char *);
 extern void lprintf(const char *, ...);

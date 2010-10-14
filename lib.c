@@ -36,6 +36,11 @@ static FILE *log;
 
 void open_log(const char *logfile)
 {
+	int ret;
+
+	/* retain any old logfile if there exists one */
+	ret = system("/bin/mv " LOGFILE " " LOGBACKUPFILE);
+
 	/* truncate log */
 	log = fopen(LOGFILE, "w");
 	if (!logfile)
