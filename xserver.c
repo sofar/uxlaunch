@@ -308,6 +308,13 @@ void start_X_server(void)
 
 	ptrs[++count] = vt;
 
+	for (i = 0; i <= count; i++) {
+		strncat(all, ptrs[i], PATH_MAX - strlen(all) - 1);
+		if (i < count)
+			strncat(all, " ", PATH_MAX - strlen(all) - 1);
+	}
+	lprintf("starting X server with: \"%s\"", all);
+
 	execv(ptrs[0], ptrs);
 
 	exit(EXIT_FAILURE);
