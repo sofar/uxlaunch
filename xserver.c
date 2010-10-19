@@ -122,7 +122,7 @@ void setup_xauth(void)
 		return;
 	}
 
-	lprintf("Xauthg cookie file: %s", xauth_cookie_file);
+	lprintf("Xauth cookie file: %s", xauth_cookie_file);
 
 	fp = fdopen(fd, "a");
 	if (!fp) {
