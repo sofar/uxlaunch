@@ -2,16 +2,21 @@ VERSION = 0.57
 
 CC := gcc
 
-all: uxlaunch
+all: uxlaunch uxlaunch.1.gz
+
+uxlaunch.1.gz: uxlaunch.1
+	gzip -c uxlaunch.1 > uxlaunch.1.gz
 
 install: uxlaunch
 	mkdir -p $(DESTDIR)/usr/sbin \
 	         $(DESTDIR)/etc/sysconfig/ \
-	         $(DESTDIR)/usr/share/man/man1/
+	         $(DESTDIR)/usr/share/man/man1/ \
+	         $(DESTDIR)/usr/share/uxlaunch
 	install -m0755  uxlaunch $(DESTDIR)/usr/sbin/
 	[ -f $(DESTDIR)/etc/sysconfig/uxlaunch ] || \
 	    install -m0644 uxlaunch.sysconfig $(DESTDIR)/etc/sysconfig/uxlaunch
-	install -m0644 uxlaunch.1 $(DESTDIR)/usr/share/man/man1/uxlaunch.1
+	install -m0644 uxlaunch.1.gz $(DESTDIR)/usr/share/man/man1/uxlaunch.1.gz
+	install -m0644 dmi-dpi $(DESTDIR)/usr/share/uxlaunch/
 
 OBJS := uxlaunch.o consolekit.o dbus.o desktop.o misc.o pam.o user.o xserver.o \
 	lib.o options.o oom_adj.o efs.o
@@ -37,7 +42,7 @@ uxlaunch: $(OBJS) Makefile
 	@$(CC) -o $@ $(OBJS) $(LDADD) $(LDFLAGS)
 
 clean:
-	rm -rf *.o *~ uxlaunch
+	rm -rf *.o *~ uxlaunch uxlaunch.1.gz
 
 dist:
 	git tag v$(VERSION)
