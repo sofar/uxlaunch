@@ -168,6 +168,47 @@ static void termhandler(int foo)
 	kill(xpid, SIGTERM);
 }
 
+static void get_dmi_dpi(void)
+{
+	/* see if we have a dmi-based override dpi value for
+	 *  this board */
+	FILE *f;
+	char boardname[PATH_MAX];
+
+	f = fopen("/sys/class/dmi/id/board_name", "r");
+	if (!f) {
+		lprintf("Unable to read DMI data");
+		return;
+	}
+	if (fscanf(f, "%s", boardname) <= 0) {
+		lprintf("Unable to read DMI data");
+		return;
+	}
+	fclose(f);
+
+	f = fopen("/usr/share/uxlaunch/dmi-dpi", "r");
+	if (!f) {
+		lprintf("No DMI-DPI table present (/usr/share/uxlaunch/dmi-dpi)");
+		return;
+	}
+	while (!feof(f)) {
+		char b[PATH_MAX];
+		char dpi[PATH_MAX];
+		if (fscanf(f, "%s %s", b, dpi) < 0) {
+			fclose(f);
+			return;
+		}	
+		if (!strcmp(boardname, b)) {
+			strncpy(dpinum, dpi, PATH_MAX-1);
+			lprintf("Using dpi=%s based on dmi-dpi table", dpinum);
+			fclose(f);
+			return;
+		}
+	}
+	fclose(f);
+}
+
+
 /*
  * start the X server
  * Step 1: arm the signal
@@ -186,6 +227,8 @@ void start_X_server(void)
 	struct stat statbuf;
 	char *ptrs[32];
 	int count = 0;
+	char all[PATH_MAX] = "";
+	int i;
 
 	/* Step 1: arm the signal */
 	memset(&usr1, 0, sizeof(struct sigaction));
@@ -246,9 +289,14 @@ void start_X_server(void)
 
 	/* dpi */
 	if (strcmp(dpinum, "auto")) {
+		/* hard-coded dpi */
 		ptrs[++count] = strdup("-dpi");
 		ptrs[++count] = dpinum;
-	}
+	} else {
+		/* see if we need to force dpi based on a dmi-dpi table
+		 * lookup, needed for handsets */
+		get_dmi_dpi();
+	} /* else dpi==auto */
 
 	ptrs[++count] = strdup("-nolisten");
 	ptrs[++count] = strdup("tcp");
