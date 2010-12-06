@@ -27,6 +27,7 @@ extern int xpid;
 
 extern int verbose;
 extern int x_session_only;
+extern char addn_xopts[];
 
 extern void get_options(int argc, char **argv);
 extern void set_i18n(void);

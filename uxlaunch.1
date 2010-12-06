@@ -48,6 +48,9 @@ See \fBOPTIONS\fP for a description of these settings.
 .TP
 \fBdpi=[auto|DPI VALUE]
 This option allows the user to override the default (120) dpi value used by uxlaunch. Either a numeric value (e.g. 96) or the special word "auto" can be used. If "auto" is specified, uxlaunch will defer the dpi setting to the XOrg server, which will attempt to autodetect your display size from the monitor and set an appropriate dpi value.
+.TP
+\fBxopts=[ADDITIONAL XOPTIONS]
+This option allows the user to set additional options to be passed to the XOrg server on invocation.  For example, one could pass "-bpp 16" to specify that the server be started in 16 bit mode.
 .SH APPLICATION STARTUP
 uxlaunch Supports desktop session startup by processing the files relevant to the freedesktop.org Desktop File Standard. uxlaunch Tries to honor the settings in XDG_CONFIG_HOME and XDG_CONFIG_DIRS and will retreive values from the users shell settings. After this and the session executable startup, uxlaunch will process autostart xdg files in the appropriate locations, prioritizing the users's override locations over default system wide startup file locations.
 .SH DESKTOP FILE EXTENSIONS

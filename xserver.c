@@ -229,6 +229,7 @@ void start_X_server(void)
 	int count = 0;
 	char all[PATH_MAX] = "";
 	int i;
+	char *opt;
 
 	/* Step 1: arm the signal */
 	memset(&usr1, 0, sizeof(struct sigaction));
@@ -306,6 +307,12 @@ void start_X_server(void)
 	ptrs[++count] = strdup("-auth");
 	ptrs[++count] = user_xauth_path;
 
+	opt = strtok(addn_xopts, " ");
+	while (opt) {
+	  lprintf("adding xopt: \"%s\"", opt);
+		ptrs[++count] = strdup(opt);
+		opt = strtok(NULL, " ");
+	}
 	ptrs[++count] = vt;
 
 	for (i = 0; i <= count; i++) {
