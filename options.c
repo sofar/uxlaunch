@@ -36,7 +36,7 @@ static struct option opts[] = {
 	{ "user",     1, NULL, 'u' },
 	{ "tty",      1, NULL, 't' },
 	{ "session",  1, NULL, 's' },
-	{ "xsession", 1, NULL, 'x' },
+	{ "xsession", 0, NULL, 'x' },
 	{ "help",     0, NULL, 'h' },
 	{ "verbose",  0, NULL, 'v' },
 	{ 0, 0, NULL, 0}
