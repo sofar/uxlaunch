@@ -18,6 +18,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <time.h>
 #include <errno.h>
@@ -283,6 +284,28 @@ void get_session_type(void)
 	setenv("X_DESKTOP_SESSION", session_filter, 1);
 }
 
+static int entry_is_reg(const gchar *dir, const struct dirent *entry)
+{
+	struct stat info;
+	gchar *filename = NULL;
+
+	switch (entry->d_type) {
+	case DT_REG:
+		return 1;
+		break;
+	case DT_UNKNOWN: /* returned on e.g. NFS filesystem */
+		filename = g_strdup_printf("%s/%s", dir, entry->d_name);
+		if (!stat(filename, &info) && (S_ISREG(info.st_mode)))
+			return 1;
+		g_free(filename);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
 void do_dir(const gchar *dir)
 {
 	DIR *d;
@@ -298,7 +321,7 @@ void do_dir(const gchar *dir)
 				break;
 			if (entry->d_name[0] == '.')
 				continue;
-			if (entry->d_type != DT_REG)
+			if (!entry_is_reg(dir, entry))
 				continue;
 			if (strchr(entry->d_name, '~'))
 				continue;  /* editor backup file */
@@ -369,7 +392,7 @@ void start_xinitrc_scripts(void)
 		entry = readdir(dir);
 		if (!entry)
 			break;
-		if (entry->d_type != DT_REG)
+		if (!entry_is_reg("/etc/X11/xinit/xinitrc.d", entry))
 			continue;
 
 		/* queue every 0.4s after xdg/autostart stuff */
