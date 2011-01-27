@@ -91,8 +91,10 @@ void setup_xauth(void)
 	fp = fopen("/dev/urandom", "r");
 	if (!fp)
 		return;
-	if (fgets(cookie, sizeof(cookie), fp) == NULL)
+	if (fgets(cookie, sizeof(cookie), fp) == NULL) {
+		fclose(fp);
 		return;
+	}
 	fclose(fp);
 
 	/* construct xauth data */
@@ -117,7 +119,7 @@ void setup_xauth(void)
 	snprintf(xauth_cookie_file, PATH_MAX, "%s/Xauth-%s-XXXXXX", XAUTH_DIR, pass->pw_name);
 
 	fd = mkstemp(xauth_cookie_file);
-	if (fd <= 0) {
+	if (fd < 0) {
 		lprintf("unable to make tmp file for xauth");
 		return;
 	}
@@ -182,6 +184,7 @@ static void get_dmi_dpi(void)
 	}
 	if (fscanf(f, "%s", boardname) <= 0) {
 		lprintf("Unable to read DMI data");
+		fclose(f);
 		return;
 	}
 	fclose(f);

@@ -410,6 +410,7 @@ void start_xinitrc_scripts(void)
 			lprintf("Warning: \"%s\" returned %d", cmd, ret);
 		exit(ret);
 	}
+	closedir(dir);
 }
 
 
