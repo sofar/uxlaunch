@@ -295,8 +295,10 @@ static int entry_is_reg(const gchar *dir, const struct dirent *entry)
 		break;
 	case DT_UNKNOWN: /* returned on e.g. NFS filesystem */
 		filename = g_strdup_printf("%s/%s", dir, entry->d_name);
-		if (!stat(filename, &info) && (S_ISREG(info.st_mode)))
+		if (!stat(filename, &info) && (S_ISREG(info.st_mode))) {
+			g_free(filename);
 			return 1;
+		}
 		g_free(filename);
 		break;
 	default:
