@@ -35,7 +35,7 @@ LDADD  += `pkg-config --libs dbus-1` \
 
 %.o: %.c uxlaunch.h Makefile
 	@echo "  CC  $<"
-	@[ -x /usr/bin/cppcheck ] && /usr/bin/cppcheck -q $<
+	@[ ! -x /usr/bin/cppcheck ] || /usr/bin/cppcheck -q $<
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
 uxlaunch: $(OBJS) Makefile
