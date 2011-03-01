@@ -351,7 +351,7 @@ void autostart_desktop_files(void)
 	if (getenv("XDG_CONFIG_HOME"))
 		xdg_config_home = g_strdup(getenv("XDG_CONFIG_HOME"));
 	else
-		xdg_config_home = g_strdup_printf("%s/autostart", getenv("XDG_CONFIG_HOME"));
+		xdg_config_home = g_strdup_printf("%s/.config", getenv("HOME"));
 
 	if (getenv("XDG_CONFIG_DIRS"))
 		xdg_config_dirs = g_strdup(getenv("XDG_CONFIG_DIRS"));
