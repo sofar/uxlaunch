@@ -18,6 +18,7 @@ extern Xauth x_auth;
 extern char user_xauth_path[];
 
 extern int tty;
+extern char chooser[];
 extern char session[];
 extern char username[];
 extern char dpinum[];
@@ -66,6 +67,8 @@ extern void log_environment(void);
 
 
 extern void setup_efs(void);
+
+extern void setup_chooser(void);
 
 #define NORMAL 0
 #define NICE 1

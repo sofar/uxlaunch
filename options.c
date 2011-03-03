@@ -25,6 +25,7 @@
 
 /* builtin defaults */
 int tty = 1;
+char chooser[256] = "";
 char session[256] = "/usr/bin/mutter --sm-disable";
 char username[256] = "meego";
 char dpinum[256] = "auto";
@@ -34,6 +35,7 @@ int verbose = 0;
 int x_session_only = 0;
 
 static struct option opts[] = {
+	{ "chooser",  1, NULL, 'c' },
 	{ "user",     1, NULL, 'u' },
 	{ "tty",      1, NULL, 't' },
 	{ "session",  1, NULL, 's' },
@@ -47,6 +49,7 @@ static struct option opts[] = {
 void usage(const char *name)
 {
 	printf("Usage: %s [OPTION...] [-- [session cmd] [session args]]\n", name);
+	printf("  -c, --chooser   Start specified UX chooser\n");
 	printf("  -u, --user      Start session as specific username\n");
 	printf("  -t, --tty       Start session on alternative tty number\n");
 	printf("  -s, --session   Start a non-default session\n");
@@ -174,6 +177,8 @@ void get_options(int argc, char **argv)
 
 			// todo: filter leading/trailing whitespace
 
+			if (!strcmp(key, "chooser"))
+				strncpy(chooser, val, 256);
 			if (!strcmp(key, "user"))
 				strncpy(username, val, 256);
 			if (!strcmp(key, "tty"))
@@ -191,11 +196,14 @@ void get_options(int argc, char **argv)
 
 	/* parse cmdline - overrides */
 	while (1) {
-		c = getopt_long(argc, argv, "u:t:s:hvx", opts, &i);
+		c = getopt_long(argc, argv, "c:u:t:s:hvx", opts, &i);
 		if (c == -1)
 			break;
 
 		switch (c) {
+		case 'c':
+			strncpy(chooser, optarg, 256);
+			break;
 		case 'u':
 			strncpy(username, optarg, 256);
 			break;

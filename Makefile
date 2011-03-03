@@ -11,15 +11,17 @@ install: uxlaunch
 	mkdir -p $(DESTDIR)/usr/sbin \
 	         $(DESTDIR)/etc/sysconfig/ \
 	         $(DESTDIR)/usr/share/man/man1/ \
-	         $(DESTDIR)/usr/share/uxlaunch
+	         $(DESTDIR)/usr/share/uxlaunch \
+	         $(DESTDIR)/usr/include
 	install -m0755  uxlaunch $(DESTDIR)/usr/sbin/
 	[ -f $(DESTDIR)/etc/sysconfig/uxlaunch ] || \
 	    install -m0644 uxlaunch.sysconfig $(DESTDIR)/etc/sysconfig/uxlaunch
 	install -m0644 uxlaunch.1.gz $(DESTDIR)/usr/share/man/man1/uxlaunch.1.gz
 	install -m0644 dmi-dpi $(DESTDIR)/usr/share/uxlaunch/
+	install -m0644 uxlaunch-ipc.h $(DESTDIR)/usr/include/
 
 OBJS := uxlaunch.o consolekit.o dbus.o desktop.o misc.o pam.o user.o xserver.o \
-	lib.o options.o oom_adj.o efs.o
+	lib.o options.o oom_adj.o efs.o chooser.o
 
 CFLAGS += -Wall -W -Os -g -fstack-protector -D_FORTIFY_SOURCE=2 -Wformat -fno-common \
 	 -Wimplicit-function-declaration  -Wimplicit-int \

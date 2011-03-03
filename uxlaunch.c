@@ -94,11 +94,14 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	set_tty();
+
 	setup_xauth();
 
-	setup_efs();
+	if (chooser[0] != '\0')
+		setup_chooser();
 
-	set_tty();
+	setup_efs();
 
 	start_oom_task();
 
