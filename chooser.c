@@ -4,6 +4,7 @@
  * (C) Copyright 2009, 2010 Intel Corporation
  * Authors:
  *     Yan Li <yan.i.li@intel.com>
+ *     Bernd Wachter <bwachter@lart.info>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -79,6 +80,11 @@ void setup_chooser(void)
 			shm->user, shm->session_path);
 		strncpy(username, shm->user, 255);
 		strncpy(session, shm->session_path, 256);
+		pass = getpwnam(username);
+		if (!pass) {
+			lprintf("Error: can't find user \"%s\"", username);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	shmctl(shm_id, IPC_RMID, 0);
