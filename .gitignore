@@ -1,3 +1,6 @@
 *.o
 uxlaunch
+*.gz
 *~
+*.orig
+*.rej
