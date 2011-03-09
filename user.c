@@ -197,8 +197,9 @@ void switch_to_user(void)
 	fp = fopen(fn, "w");
 	if (fp) {
 		fclose(fp);
-		fp = freopen(fn, "w", stdout);
-		fp = freopen(fn, "w", stderr);
+		/* xserver.c already truncates this file, so append */
+		fp = freopen(fn, "a", stdout);
+		fp = freopen(fn, "a", stderr);
 	} else {
 		lprintf("Unable to open \"%s\n\" for writing", fn);
 	}

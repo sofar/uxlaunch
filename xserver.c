@@ -233,6 +233,8 @@ void start_X_server(void)
 	char all[PATH_MAX] = "";
 	int i;
 	char *opt;
+	FILE *fp;
+	char fn[PATH_MAX];
 
 	/* Step 1: arm the signal */
 	memset(&usr1, 0, sizeof(struct sigaction));
@@ -324,6 +326,17 @@ void start_X_server(void)
 			strncat(all, " ", PATH_MAX - strlen(all) - 1);
 	}
 	lprintf("starting X server with: \"%s\"", all);
+
+	/* redirect further IO to .xsession-errors */
+	snprintf(fn, PATH_MAX, "%s/.xsession-errors", pass->pw_dir);
+	fp = fopen(fn, "w");
+	if (fp) {
+		fclose(fp);
+		fp = freopen(fn, "w", stdout);
+		fp = freopen(fn, "w", stderr);
+	} else {
+		lprintf("Unable to open \"%s\n\" for writing", fn);
+	}
 
 	execv(ptrs[0], ptrs);
 
