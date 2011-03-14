@@ -272,6 +272,8 @@ void get_session_type(void)
 	//FIXME: in the same way the gnome session is defined
 	if (strstr(session, "mcompositor"))
 		snprintf(session_filter, 16, "X-MEEGO-HS");
+	else if (strstr(session, "startivi"))
+		snprintf(session_filter, 16, "X-MEEGO-IVI");
 	else if (strstr(session, "neskowin"))
 		snprintf(session_filter, 16, "X-MUX"); /* old */
 	else if (strstr(session, "xfce"))
