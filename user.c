@@ -233,6 +233,11 @@ void setup_user_environment (void)
 void set_i18n(void)
 {
 	FILE *f;
+	char path[PATH_MAX];
+	char buf[256];
+	char *key;
+	char *val;
+
 	lprintf("entering set_i18n");
 
 	/*
@@ -240,35 +245,37 @@ void set_i18n(void)
 	 * various i18n options in environment, typically:
 	 * LANG, SYSFONT
 	 */
-
+	snprintf(path, PATH_MAX, "%s/.config/i18n", pass->pw_dir);
+	f = fopen(path, "r");
+	if (f)
+		goto parse;
 	f = fopen("/etc/sysconfig/i18n", "r");
-	if (f) {
-		char buf[256];
-		char *key;
-		char *val;
+	if (f)
+		goto parse;
+	return;
 
-		while (fgets(buf, 256, f) != NULL) {
-			char *c;
+parse:
+	while (fgets(buf, 256, f) != NULL) {
+		char *c;
 
-			c = strchr(buf, '\n');
-			if (c) *c = 0; /* remove trailing \n */
-			if (buf[0] == '#')
-				continue; /* skip comments */
+		c = strchr(buf, '\n');
+		if (c) *c = 0; /* remove trailing \n */
+		if (buf[0] == '#')
+			continue; /* skip comments */
 
-			key = strtok(buf, "=");
-			if (!key)
-				continue;
-			val = strtok(NULL, "=\""); /* note \" */
-			if (!val)
-				continue;
+		key = strtok(buf, "=");
+		if (!key)
+			continue;
+		val = strtok(NULL, "=\""); /* note \" */
+		if (!val)
+			continue;
 
-			/* grab the stuff we need, avoiding comments
-			 * and other user stuff we don't care for now */
-			if (!strcmp(key, "LANG"))
-				setenv(key, val, 1);
-			if (!strcmp(key, "SYSFONT"))
-				setenv(key, val, 1);
-		}
-		fclose(f);
+		/* grab the stuff we need, avoiding comments
+		 * and other user stuff we don't care for now */
+		if (!strcmp(key, "LANG"))
+			setenv(key, val, 1);
+		if (!strcmp(key, "SYSFONT"))
+			setenv(key, val, 1);
 	}
+	fclose(f);
 }
