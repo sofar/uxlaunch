@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pwd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <security/pam_appl.h>
 
@@ -85,6 +87,12 @@ void setup_pam_session(void)
 
 	pc.conv = pam_conversation_fn;
 	pc.appdata_ptr = NULL;
+
+	/*
+	 * it's possible that /var/run/console does not exist, which is fine. for PAM
+	 * to run without complaining, let's just create it on the fly.
+	 */
+	(void) mkdir("/var/run/console", 0755);
 
 	err = pam_start("login", pass->pw_name, &pc, &ph);
 
