@@ -9,7 +9,7 @@
 #
 # defaults:
 # user=meego
-# tty=2
+# tty=1
 # dpi=120
 # session=/usr/bin/mutter --sm-disable
 #
