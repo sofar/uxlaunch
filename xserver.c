@@ -59,6 +59,7 @@ static volatile int exiting = 0;
 void set_tty(void)
 {
 	int fd;
+	struct vt_stat v;
 
 	lprintf("Entering set_tty");
 
@@ -68,9 +69,18 @@ void set_tty(void)
 		lprintf("Unable to open /dev/console, using stdin");
 		fd = 0;
 	}
-	ioctl(fd, VT_ACTIVATE, tty);
-	if (fd != 0)
+
+	if (ioctl(fd, VT_GETSTATE, &v)) {
+		lprintf("VT_GETSTATE failed");
 		close(fd);
+		return;
+	}
+
+	if (v.v_active != tty) {
+		if (ioctl(fd, VT_ACTIVATE, tty))
+			lprintf("VT_ACTIVATE failed");
+	}
+	close(fd);
 
 	snprintf(displaydev, PATH_MAX, "/dev/tty%d", tty);
 

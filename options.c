@@ -24,7 +24,7 @@
 #include "uxlaunch.h"
 
 /* builtin defaults */
-int tty = 2;
+int tty = 1;
 char session[256] = "/usr/bin/mutter --sm-disable";
 char username[256] = "meego";
 char dpinum[256] = "120";
