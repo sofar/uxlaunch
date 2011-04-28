@@ -1,4 +1,4 @@
-VERSION = 0.59
+VERSION = 0.59.1
 
 CC := gcc
 
