@@ -182,7 +182,7 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 
 	keyfile = g_key_file_new();
 	if (!g_key_file_load_from_file(keyfile, filename, 0, &error)) {
-		g_error(error->message);
+		g_error("%s\n", error->message);
 		return;
 	}
 
