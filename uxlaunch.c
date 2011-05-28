@@ -132,9 +132,9 @@ int main(int argc, char **argv)
 	 * tasks at non-oomkillable priorities
 	 */
 
-	oom_adj(xpid, -17);
-	oom_adj(session_pid, -17);
-	oom_adj(getpid(), -17);
+	oom_adj(xpid, -1000);
+	oom_adj(session_pid, -1000);
+	oom_adj(getpid(), -1000);
 
 	/*
 	 * The desktop session runs here

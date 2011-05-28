@@ -66,16 +66,17 @@ void start_oom_task()
 		char val[16];
 		int fd;
 
-		snprintf(path, PATH_MAX, "/proc/%d/oom_adj", request.pid);
+		snprintf(path, PATH_MAX, "/proc/%d/oom_score_adj", request.pid);
 		snprintf(val, 16, "%d", request.prio);
 		fd = open(path, O_WRONLY);
 		if (fd < 0) {
-			lprintf("Failed to write oom_adj score file: %s", path);
+			lprintf("Failed to write oom_core_dj score file: %s",
+			path);
 			continue;
 		}
 		if (write(fd, &val, strlen(val)) < 0)
-			lprintf("Failed to write oom_adj value: %s: %d", path,
-				request.prio);
+			lprintf("Failed to write oom_score_adj value: %s: %d",
+				path, request.prio);
 		close(fd);
 
 	}
