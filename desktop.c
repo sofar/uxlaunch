@@ -245,13 +245,11 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 			lprintf("Unknown value for key X-Meego-Watchdog: %s", wd_key);
 	}
 
-	goto nohide;
-hide:
-	exec_key = NULL;
-	prio = -1;
-nohide:
 	desktop_entry_add(file, g_shell_unquote(exec_key, &error), prio, wd);
-
+	goto done;
+hide:
+	desktop_entry_add(file, NULL, -1, wd);
+done:
 	g_free(filename);
 }
 
