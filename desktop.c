@@ -26,19 +26,10 @@
 #include <limits.h>
 #include <pwd.h>
 #include <wordexp.h>
+#include <asm/unistd.h>
 
 #include "uxlaunch.h"
-#if defined(__i386__)
-#  define __NR_ioprio_set 289
-#elif defined(__x86_64__)
-#  define __NR_ioprio_set 251
-#elif defined(__arm__)
-#  define __NR_ioprio_set 314
-#elif defined (__powerpc__)
-#  define __NR_ioprio_set 273
-#else
-#  error "Unsupported arch"
-#endif
+
 #define IOPRIO_WHO_PROCESS 1
 #define IOPRIO_CLASS_IDLE 3
 #define IOPRIO_CLASS_SHIFT 13
