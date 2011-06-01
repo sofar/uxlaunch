@@ -65,10 +65,10 @@ extern void stop_oom_task(void);
 #define LOGBACKUPFILE "/var/log/uxlaunch.1.log"
 
 extern void open_log(const char *);
+extern void close_log(void);
 extern void lprintf(const char *, ...);
 extern void log_environment(void);
 
-extern void close_log(void);
 
 extern void setup_efs(void);
 

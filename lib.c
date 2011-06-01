@@ -51,6 +51,12 @@ void open_log(const char *logfile)
 		logfile_enabled = 0;
 }
 
+void close_log()
+{
+	logfile_enabled = 0;
+	fclose(log);
+}
+
 
 void lprintf(const char* fmt, ...)
 {
@@ -87,7 +93,8 @@ void lprintf(const char* fmt, ...)
 	if (verbose)
 		fprintf(stderr, "%s", string);
 
-	if (!logfile_enabled)
+	if (!logfile_enabled && !verbose)
+		fprintf(stderr, "%s", string);
 		return;
 
 	if (log) {

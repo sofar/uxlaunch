@@ -471,6 +471,7 @@ void do_autostart(void)
 
 		/* watchdog handling */
 		if (entry->watchdog == WD_NONE) {
+			close_log();
 			execvp(ptrs[0], ptrs);
 			exit(ret);
 		}
@@ -478,6 +479,7 @@ void do_autostart(void)
 restart:
 		pid = fork();
 		if (pid == 0) {
+			close_log();
 			execvp(ptrs[0], ptrs);
 			lprintf("Failed to execvp(%s)", entry->exec);
 			exit(EXIT_FAILURE);
@@ -562,6 +564,7 @@ void start_desktop_session(void)
 	while (ptrs[count] && count < 255)
 		ptrs[++count] = strtok(NULL, " \t");
 
+	close_log();
 	ret = execv(ptrs[0], ptrs);
 
 	if (ret != EXIT_SUCCESS)
