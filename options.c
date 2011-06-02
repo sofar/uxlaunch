@@ -64,11 +64,11 @@ static void get_dmi_dpi(void)
 
 	f = fopen("/etc/boardname", "r");
 	if (!f) {
-		lprintf("Unable to open boardname file");
+		lprintf("Unable to open /etc/boardname");
 		return;
 	}
 	if (fscanf(f, "%s", boardname) <= 0) {
-		lprintf("Unable to read boardname dataa");
+		lprintf("Unable to read /etc/boardname");
 		fclose(f);
 		return;
 	}
