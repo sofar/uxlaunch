@@ -27,7 +27,7 @@
 int tty = 1;
 char session[256] = "/usr/bin/mutter --sm-disable";
 char username[256] = "meego";
-char dpinum[256] = "120";
+char dpinum[256] = "auto";
 char addn_xopts[256] = "";
 
 int verbose = 0;
@@ -53,6 +53,47 @@ void usage(const char *name)
 	printf("  -x, --xsession  Start X apps inside an existing X session\n");
 	printf("  -v, --verbose   Display lots of output to the console\n");
 	printf("  -h, --help      Display this help message\n");
+}
+
+static void get_dmi_dpi(void)
+{
+	/* see if we have a dmi-based override dpi value for
+	 *  this board */
+	FILE *f;
+	char boardname[PATH_MAX];
+
+	f = fopen("/etc/boardname", "r");
+	if (!f) {
+		lprintf("Unable to open boardname file");
+		return;
+	}
+	if (fscanf(f, "%s", boardname) <= 0) {
+		lprintf("Unable to read boardname dataa");
+		fclose(f);
+		return;
+	}
+	fclose(f);
+
+	f = fopen("/usr/share/uxlaunch/dmi-dpi", "r");
+	if (!f) {
+		lprintf("No DMI-DPI table present (/usr/share/uxlaunch/dmi-dpi)");
+		return;
+	}
+	while (!feof(f)) {
+		char b[PATH_MAX];
+		char dpi[PATH_MAX];
+		if (fscanf(f, "%s %s", b, dpi) < 0) {
+			fclose(f);
+			return;
+		}	
+		if (!strcmp(boardname, b)) {
+			strncpy(dpinum, dpi, sizeof(dpinum)-1);
+			lprintf("Using dpi=%s based on dmi-dpi table", dpinum);
+			fclose(f);
+			return;
+		}
+	}
+	fclose(f);
 }
 
 void get_options(int argc, char **argv)
@@ -99,6 +140,14 @@ void get_options(int argc, char **argv)
 	}
 	if (dir)
 		closedir(dir);
+
+	/*
+	 * DPI setting order:
+	 * - auto by default
+	 * - dmi lookup table if it exists
+	 * - config file overrides as normal
+	 */
+	get_dmi_dpi();
 
 	/* parse config file */
 	f = fopen("/etc/sysconfig/uxlaunch", "r");
