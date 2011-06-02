@@ -10,17 +10,17 @@
 # defaults:
 # user=meego
 # tty=1
-# dpi=120
+# dpi=auto
 # session=/usr/bin/mutter --sm-disable
 #
-# standard MeeGo desktop:
+# MeeGo netbook desktop:
 # session=/usr/bin/mutter --sm-disable
+#
+# Tablet desktop:
+# session=/usr/bin/mcompositor
 #
 # GNOME desktop:
 # session=/usr/bin/gnome-session
-#
-# MUX desktop:
-# session=/usr/bin/neskowin
 #
 # XFCE desktop:
 # session=/usr/bin/xfce4-session
