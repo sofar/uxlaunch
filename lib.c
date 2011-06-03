@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <string.h>
+#include <syslog.h> 
 
 #include "uxlaunch.h"
 
@@ -27,35 +28,8 @@
 extern char **environ;
 
 static int first_time = 1;
-static int logfile_enabled = 1;
 
 struct timeval start;
-
-static FILE *log;
-
-
-void open_log(const char *logfile)
-{
-	int ret;
-
-	/* retain any old logfile if there exists one */
-	ret = system("/bin/mv " LOGFILE " " LOGBACKUPFILE);
-
-	/* truncate log */
-	log = fopen(LOGFILE, "w");
-	if (!logfile)
-		log = stdout;
-	else
-		log = fopen(logfile, "w");
-	if (!log)
-		logfile_enabled = 0;
-}
-
-void close_log()
-{
-	logfile_enabled = 0;
-	fclose(log);
-}
 
 
 void lprintf(const char* fmt, ...)
@@ -71,16 +45,6 @@ void lprintf(const char* fmt, ...)
 		gettimeofday(&start, NULL);
 	}
 
-	gettimeofday(&current, NULL);
-
-	secs = current.tv_sec - start.tv_sec;
-
-	while (current.tv_usec < start.tv_usec) {
-		secs --;
-		current.tv_usec += 1000000;
-	}
-	usecs = current.tv_usec - start.tv_usec;
-
 	va_start(args, fmt);
 	vsnprintf(msg, 8192, fmt, args);
 	va_end(args);
@@ -88,22 +52,28 @@ void lprintf(const char* fmt, ...)
 	if (msg[strlen(msg) - 1] == '\n')
 		msg[strlen(msg) - 1] = '\0';
 
-	snprintf(string, 8192, "[%02llu.%06llu] [%d] %s\n", secs, usecs, getpid(), msg);
 
-	if (verbose)
+	if (verbose) {
+		gettimeofday(&current, NULL);
+
+		secs = current.tv_sec - start.tv_sec;
+
+		while (current.tv_usec < start.tv_usec) {
+			secs --;
+			current.tv_usec += 1000000;
+		}
+		usecs = current.tv_usec - start.tv_usec;
+
+		snprintf(string, 8192, "[%02llu.%06llu] [%d] %s\n", secs, usecs,
+			 getpid(), msg);
+
 		fprintf(stderr, "%s", string);
-
-	if (!logfile_enabled && !verbose)
-		fprintf(stderr, "%s", string);
-		return;
-
-	if (log) {
-		fputs(string, log);
-		fflush(log);
-	} else {
-		logfile_enabled = 0;
-		lprintf("unable to write logfile, file logging disabled");
 	}
+
+	openlog("uxlaunch", LOG_PID | LOG_CONS,
+		geteuid() ? LOG_USER : LOG_USER);
+	syslog(LOG_NOTICE, "%s", msg);
+	closelog();
 }
 
 
