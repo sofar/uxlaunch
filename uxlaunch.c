@@ -30,6 +30,9 @@ launch_user_session(void)
 
 	setup_user_environment();
 
+	/* this needs XDG_* set in environ */
+	get_session_type();
+
 	start_ssh_agent();
 
 	setup_consolekit_session();
@@ -39,8 +42,6 @@ launch_user_session(void)
 
 	/* gconf needs dbus */
 	start_gconf();
-
-	get_session_type();
 
 	log_environment();
 

@@ -37,7 +37,8 @@
 
 
 int session_pid;
-char session_filter[16] = "X-MEEGO-NB";
+gchar *session_filter = NULL;
+gchar *session_exec = NULL;
 static int delay = 0;
 
 /*
@@ -198,10 +199,12 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
 
 	if (onlyshowin_key)
+		// FIXME: explode onlyshowin_key and g_strcmp0
 		if (!g_strstr_len(onlyshowin_key, -1, session_filter)) {
 			goto hide;
 	}
 	if (notshowin_key) {
+		// FIXME: explode notshowin_key and g_strcmp0
 		if (g_strstr_len(notshowin_key, -1, session_filter))
 			goto hide;
 		/* for MeeGo, hide stuff hidden to gnome */
@@ -256,24 +259,111 @@ done:
 
 void get_session_type(void)
 {
-	/* adjust filter based on what our session cmd is */
-	//FIXME: this needs to be mapped by xsession desktop files
-	//FIXME: in the same way the gnome session is defined
-	if (strstr(session, "mcompositor"))
-		snprintf(session_filter, 16, "X-MEEGO-HS");
-	else if (strstr(session, "startivi"))
-		snprintf(session_filter, 16, "X-MEEGO-IVI");
-	else if (strstr(session, "neskowin"))
-		snprintf(session_filter, 16, "X-MUX"); /* old */
-	else if (strstr(session, "xfce"))
-		snprintf(session_filter, 16, "XFCE");
-	else if (strstr(session, "gnome"))
-		snprintf(session_filter, 16, "GNOME");
-	else if (strstr(session, "kde"))
-		snprintf(session_filter, 16, "KDE");
-	/* default == X-MEEGO-NB */
+	GKeyFile *keyfile;
+	GError *error = NULL;
+	gchar *filename = NULL;
+	char buf[PATH_MAX];
+	char *c;
+	struct stat st;
+
+	/*
+	 * DE Session setup
+	 *
+	 * Here's how it works:
+	 *
+	 * packages can drop SESSION files in /usr/share/xsessions. These
+	 * contain misc information used in choosers and Exec= lines containing
+	 * the session master process. The session filter is determined
+	 * by taking the session.desktop filename and removing the extension;
+	 * so a gnome.desktop session file describes the GNOME session.
+	 *
+	 * priority order is determined in options.c
+	 *
+	 * by default, we look for 'default.desktop' which can reside
+	 * in several locations: (listed in low to high priority)
+	 * - /usr/share/xsessions/default.desktop
+	 * - /etc/X11/dm/Sessions/default.desktop
+	 * - ~/.config/xsessions/default.desktop
+	 *
+	 * if you change the session, it will look for the identifier
+	 * you provided instead (and append ".desktop")
+	 */
+
+	filename = g_strdup_printf("%s/xsessions/%s.desktop", getenv("XDG_CONFIG_HOME"), session);
+	if (!access(filename, R_OK))
+		goto found_session;
+	filename = g_strdup_printf("/etc/X11/dm/Sessions/%s.desktop", session);
+	if (!access(filename, R_OK))
+		goto found_session;
+	filename = g_strdup_printf("/usr/share/xsessions/%s.desktop", session);
+	if (!access(filename, R_OK))
+		goto found_session;
+
+	lprintf("Unable to find session \"%s.desktop\"!", filename);
+
+	lprintf("WARNING: using DEPRECATED session mechanics. Please read `man uxlaunch` on");
+	lprintf("how to setup a session file properly instead!");
+
+	if (!access(session, X_OK)) {
+		session_exec = g_strdup(session);
+		lprintf("ERROR: unable to determine the session filter string, using invalid value");
+	} else {
+		lprintf("%s: not a valid executable", session);
+		exit(EXIT_FAILURE);
+	}
+
+	session_filter = g_strdup("X-UNKNOWN");
+	goto session_done;
+
+found_session:
+	keyfile = g_key_file_new();
+	if (!g_key_file_load_from_file(keyfile, filename, 0, &error)) {
+		g_error("%s\n", error->message);
+		return;
+	}
+
+	session_exec = g_key_file_get_string(keyfile, "Desktop Entry", "Exec", NULL);
+	if (!session_exec) {
+		lprintf("%s: invalid session file: no valid Exec= key", filename);
+		exit(EXIT_FAILURE);
+	}
+
+	/* is the file a symlink? e.g. default.desktop -> gnome.desktop? */
+	if (lstat(filename, &st)) {
+		lprintf("%s: unable to lstat()", filename);
+		exit(EXIT_FAILURE);
+	}
+	if (S_ISLNK(st.st_mode)) {
+		ssize_t l;
+		/* now, readlink() the file.desktop and look at the basename */
+		l = readlink(filename, buf, sizeof(buf) -1);
+		if (l < 0) {
+			lprintf("%s: unable to determine link target", filename);
+			exit(EXIT_FAILURE);
+		}
+		buf[l] = 0;
+		/* get the basename without .desktop */
+		c = strrchr(buf, '/') + 1;
+	} else {
+		c = strrchr(filename, '/') + 1;
+	}
+
+	if (strlen(c) <= strlen(".desktop")) {
+		lprintf("%s: funny, malformed link target", filename);
+		exit(EXIT_FAILURE);
+	}
+	*(c + strlen(c) - strlen(".desktop")) = 0;
+
+	/* and use that as session_filter */
+	session_filter = g_strdup(c);
+
+session_done:
+	lprintf("Session filter key = \"%s\"", session_filter);
+	lprintf("Session program = \"%s\"", session_exec);
+
 	setenv("X_DESKTOP_SESSION", session_filter, 1);
 }
+
 
 static int entry_is_reg(const gchar *dir, const struct dirent *entry)
 {
@@ -558,12 +648,12 @@ void start_desktop_session(void)
 
 	memset(ptrs, 0, sizeof(ptrs));
 
-	ptrs[0] = strtok(session, " \t");
+	ptrs[0] = strtok(session_exec, " \t");
 	while (ptrs[count] && count < 255)
 		ptrs[++count] = strtok(NULL, " \t");
 
 	ret = execv(ptrs[0], ptrs);
 
 	if (ret != EXIT_SUCCESS)
-		lprintf("Failed to start %s", session);
+		lprintf("Failed to start %s", session_exec);
 }

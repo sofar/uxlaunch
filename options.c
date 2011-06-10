@@ -26,7 +26,7 @@
 /* builtin defaults */
 int tty = 1;
 char chooser[256] = "";
-char session[256] = "/usr/bin/mutter --sm-disable";
+char session[256] = "default";
 char username[256] = "meego";
 char dpinum[256] = "auto";
 char addn_xopts[256] = "";
