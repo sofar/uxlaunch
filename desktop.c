@@ -198,20 +198,37 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	if (!dontstart_key)
 		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
 
-	if (onlyshowin_key)
-		// FIXME: explode onlyshowin_key and g_strcmp0
-		if (!g_strstr_len(onlyshowin_key, -1, session_filter)) {
-			goto hide;
+	/*
+	 * Filtering desktop files is case insensitive, e.g.
+	 * when using gnome, GNOME is also matched in these keys.
+	 */
+	if (onlyshowin_key) {
+		gchar **partial;
+		int n;
+		partial = g_strsplit(onlyshowin_key, ";", -1);
+
+		for (n = 0; partial[n] != NULL; n++) {
+			if (!g_ascii_strcasecmp(partial[n], session_filter)) {
+				g_strfreev(partial);
+				goto hide;
+			}
+		}
+		g_strfreev(partial);
 	}
 	if (notshowin_key) {
-		// FIXME: explode notshowin_key and g_strcmp0
-		if (g_strstr_len(notshowin_key, -1, session_filter))
-			goto hide;
-		/* for MeeGo, hide stuff hidden to gnome */
-		if (!strcmp(session_filter, "X-MEEGO-NB"))
-			if (g_strstr_len(notshowin_key, -1, "GNOME"))
+		gchar **partial;
+		int n;
+		partial = g_strsplit(onlyshowin_key, ";", -1);
+
+		for (n = 0; partial[n] != NULL; n++) {
+			if (g_ascii_strcasecmp(partial[n], session_filter)) {
+				g_strfreev(partial);
 				goto hide;
+			}
+		}
+		g_strfreev(partial);
 	}
+
 	if (onlystart_key)
 		if (!file_expand_exists(onlystart_key))
 			goto hide;
