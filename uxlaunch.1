@@ -21,7 +21,7 @@ Finally, uxlaunch cleans up the session if any of the session process, or X serv
 specify an alternative user to start the desktop session as. By default, uxlaunch will use the first user accound found through various tests, or the user "meego" if none valid is found.
 .TP
 \fB\-s [SESSION]\fR, \fB\-\-session=[SESSION]
-specify an alternative session to start. This overrides the default session and attempts to start the [SESSION] instead.
+specify an alternative session to start. This overrides the default session and attempts to start the [SESSION] instead. See the \fBSESSIONS\fR section for more information.
 .TP
 \fB\-t [TTY]\fR, \fB\-\-tty=[TTY]
 Specify to use tty [TTY] instead of tty1 to run the X server on.
@@ -66,6 +66,10 @@ Attach a watchdog to the application. The watchdog can perform several actions b
 .TP
 \fBX-MeesGo-DontStartIfFileExists=[path]
 Make the startup of the application conditional on whether a file exists (OnlyStartIf...) or conditional on whether a file does not exist (DontStart...).
+.SH SESSIONS
+Sessions are defined by session files. They are stored as 'sessionname.desktop' files in several possible locations. Without any configuration, uxlaunch will try and find the 'default.desktop' session file. The options listed above will allow you to override the search target.
+.TP
+The search order for session files is /usr/share/xsessions first, /etc/X11/dm/Sessions, and last ~/.config/xsessions. If the session desktop file is found in any of these locations, it will be readlink()ed to resolve a (for instance) ~/.config/xsessions/default.desktop symlink to /usr/share/xsessions/foo.desktop first. The session filter then used is the basename of the target of the resulting file with '.desktop' removed. So, for instance a session file named 'gnome.desktop' will cause uxlaunch to assume the session is 'gnome' (case insensitive). This filter is used to parse autostart desktop files later. 
 .SH ENVIRONMENT
 uxlaunch Copies the user's shell environment over to the session it starts by starting a subshell for the user and preserving the environment variables.  Several variables influence how uxlaunch works:
 .TP
