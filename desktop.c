@@ -359,11 +359,17 @@ found_session:
 			exit(EXIT_FAILURE);
 		}
 		buf[l] = 0;
-		/* get the basename without .desktop */
-		c = strrchr(buf, '/') + 1;
+		c = buf;
 	} else {
-		c = strrchr(filename, '/') + 1;
+		c = filename;
 	}
+
+	/* get the basename without .desktop */
+	c = strrchr(c, '/');
+	if (!c)
+		c = buf; /* relative link, ignore */
+	else
+		c++; /* leading / itself */
 
 	if (strlen(c) <= strlen(".desktop")) {
 		lprintf("%s: funny, malformed link target", filename);
