@@ -218,7 +218,7 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	if (notshowin_key) {
 		gchar **partial;
 		int n;
-		partial = g_strsplit(onlyshowin_key, ";", -1);
+		partial = g_strsplit(notshowin_key, ";", -1);
 
 		for (n = 0; partial[n] != NULL; n++) {
 			if (g_ascii_strcasecmp(partial[n], session_filter)) {
