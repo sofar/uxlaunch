@@ -42,6 +42,7 @@ void setup_consolekit_session(void)
 	DBusError error;
 	char *d = &displaydev[0];
 	char *n = &displayname[0];
+	int is_local = 1;
 
 	connector = ck_connector_new();
 	if (!connector)
@@ -59,6 +60,7 @@ void setup_consolekit_session(void)
 						       "display-device", &d,
 						       "x11-display-device", &d,
 						       "x11-display", &n,
+						       "is-local", &is_local,
 						       NULL)) {
 		lprintf("Error: Unable to open session with ConsoleKit: %s: %s\n",
 			error.name, error.message);

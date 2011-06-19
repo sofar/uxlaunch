@@ -35,8 +35,6 @@ launch_user_session(void)
 
 	start_ssh_agent();
 
-	setup_consolekit_session();
-
 	/* dbus needs the CK env var */
 	start_dbus_session_bus();
 
@@ -107,6 +105,8 @@ int main(int argc, char **argv)
 	start_oom_task();
 
 	setup_pam_session();
+
+	setup_consolekit_session();
 
 	switch_to_user();
 
