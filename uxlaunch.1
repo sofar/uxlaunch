@@ -62,9 +62,9 @@ Prioritize startup of this application to be immediate (Highest), or in subseque
 \fBX-Meego-Watchdog=[Halt|Restart|Fail]
 Attach a watchdog to the application. The watchdog can perform several actions based on the exit conditions of the application. Normally when an application exits, nothing happens. If "restart" is set, the application is restarted no matter what exit condition happened. If "fail" is set, the application is restarted if it returned an exit condition (non-0 exit code).  If "halt" is set, the session is shut down if the application exits. This allows a critical application to generate a session restart or shutdown condition.
 .TP
-\fBX-MeeGo-OnlyStartIfFileExists=[path]
+\fBX-MeesGo-OnlyStartIfFileExists=[path]
 .TP
-\fBX-MeeGo-DontStartIfFileExists=[path]
+\fBX-MeesGo-DontStartIfFileExists=[path]
 Make the startup of the application conditional on whether a file exists (OnlyStartIf...) or conditional on whether a file does not exist (DontStart...).
 .SH ENVIRONMENT
 uxlaunch Copies the user's shell environment over to the session it starts by starting a subshell for the user and preserving the environment variables.  Several variables influence how uxlaunch works:
