@@ -377,6 +377,43 @@ void autostart_desktop_files(void)
 }
 
 
+void start_xinitrc_scripts(void)
+{
+	// FIXME: feature removal: this entire mechanism needs to be
+	// removed in favor of desktop file handling
+	DIR* dir;
+
+	dir = opendir("/etc/X11/xinit/xinitrc.d");
+	while (dir) {
+		int ret;
+		struct dirent *entry;
+		char cmd[PATH_MAX];
+
+		entry = readdir(dir);
+		if (!entry)
+			break;
+		if (!entry_is_reg("/etc/X11/xinit/xinitrc.d", entry))
+			continue;
+
+		/* queue every 0.4s after xdg/autostart stuff */
+		delay = delay + 8 * DELAY_UNIT;
+
+		if (fork())
+			continue;
+
+		usleep(delay);
+
+		snprintf(cmd, PATH_MAX, "/etc/X11/xinit/xinitrc.d/%s", entry->d_name);
+		lprintf("Starting \"%s\" at %d", cmd, delay);
+		ret = system(cmd);
+		if (ret)
+			lprintf("Warning: \"%s\" returned %d", cmd, ret);
+		exit(ret);
+	}
+	closedir(dir);
+}
+
+
 void do_autostart(void)
 {
 	GList *item;
@@ -408,6 +445,8 @@ void do_autostart(void)
 
 		if (entry->prio >= 3) {
 			if (!late) {
+				/* handle xinitrc stuff now */
+				start_xinitrc_scripts();
 				/* then add late stuff */
 				delay += 60000000;
 				late = 1;
