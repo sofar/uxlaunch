@@ -1,11 +1,10 @@
 SUBDIRS = src
 
-man_MANS = uxlaunch.1.gz
+man_MANS = uxlaunch.1
 
-EXTRA_DIST = AUTHORS COPYING INSTALL uxlaunch.sysconfig dmi-dpi uxlaunch.1
+noinst_DATA = uxlaunch.sysconfig dmi-dpi
 
-uxlaunch.1.gz: uxlaunch.1
-	gzip < $< > $@
+EXTRA_DIST = AUTHORS COPYING INSTALL $(noinst_DATA) $(man_MANS)
 
 install-data-local:
 	$(MKDIR_P) $(DESTDIR)$(sysconfdir)/sysconfig
