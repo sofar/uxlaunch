@@ -1,5 +1,5 @@
-#ifndef __INCLUDE_GUARD_UXLAUNCH_
-#define __INCLUDE_GUARD_UXLAUNCH_
+#ifndef __UXLAUNCH_H__
+#define __UXLAUNCH_H__
 
 #include <X11/Xauth.h>
 #include <sys/types.h>
@@ -78,4 +78,4 @@ extern void setup_chooser(void);
 
 extern void start_daemon(int flags, char *cmd, char *args);
 
-#endif
+#endif /* ! __UXLAUNCH_H__ */

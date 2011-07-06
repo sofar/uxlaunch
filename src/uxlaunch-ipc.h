@@ -1,5 +1,5 @@
-#ifndef __INCLUDE_GUARD_UXLAUNCH_IPC_
-#define __INCLUDE_GUARD_UXLAUNCH_IPC_
+#ifndef __UXLAUNCH_IPC_H__
+#define __UXLAUNCH_IPC_H__
 
 #include <limits.h>
 
@@ -13,4 +13,4 @@ struct _uxlaunch_chooser_shm {
 	char session_name[UXLAUNCH_NAME_LIMIT];
 };
 
-#endif
+#endif /* ! __UXLAUNCH_IPC_H__ */

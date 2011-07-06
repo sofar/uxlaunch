@@ -1,0 +1,47 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.68])
+AC_INIT([uxlaunch],[0.63],[auke-jan.h.kok@intel.com])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_SRCDIR([src/uxlaunch.c])
+AC_CONFIG_HEADERS([config.h])
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-lXau':
+AC_CHECK_LIB([Xau], [main])
+# FIXME: Replace `main' with a function in `-lpam':
+AC_CHECK_LIB([pam], [main])
+# FIXME: Replace `main' with a function in `-lpthread':
+AC_CHECK_LIB([pthread], [main])
+# FIXME: Replace `main' with a function in `-lrt':
+AC_CHECK_LIB([rt], [main])
+
+# PkgConfig tests
+PKG_CHECK_MODULES([DBUS], [dbus-1])
+PKG_CHECK_MODULES([CONSOLEKIT], [ck-connector >= 0.4])
+PKG_CHECK_MODULES([GLIB2], [glib-2.0])
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h sys/time.h syslog.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_UID_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UINT64_T
+
+# Checks for library functions.
+AC_FUNC_CHOWN
+AC_FUNC_FORK
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([clock_gettime gettimeofday memset mkdir setenv strchr strdup strerror strrchr strstr uname])
+
+AC_OUTPUT

@@ -23,6 +23,8 @@
 
 #include "uxlaunch.h"
 
+#include "../config.h"
+
 /* builtin defaults */
 int tty = 1;
 char chooser[256] = "";

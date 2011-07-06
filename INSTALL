@@ -4,7 +4,7 @@
 
 Installing uxlaunch and making it operational should only require 3 steps:
 
-1) running `make install` in this source directory
+1) running `./configure; make; make install` in this source directory
 2) editing the configuration file
 3) configuring your system to start uxlaunch automatically
 
@@ -12,10 +12,10 @@ Step 1 should be trivial.
 
 Step 2, editing the configuration file. This step is optional for single-
 user systems where there is only one user account with a /home/$USER folder.
-In case you need a different desktop than the programmed default (the meego
+In case you need a different desktop than the programmed default (the MeeGo
 netbook UX) started, you can use this configuration file to specify a
-different default session process. The configuration file is normally
-installed as /etc/sysconfig/uxlaunch.
+different default session. The configuration file is normally installed
+as /etc/sysconfig/uxlaunch.
 
 Step 3, configuring your system to start uxlaunch at boot time, should be
 done by inserting the following line in /etc/inittab:
