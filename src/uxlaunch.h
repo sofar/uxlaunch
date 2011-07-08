@@ -6,6 +6,8 @@
 #include <pwd.h>
 #include <glib.h>
 
+#include "../config.h"
+
 /*
  * Target user information
  */
@@ -18,7 +20,6 @@ extern Xauth x_auth;
 extern char user_xauth_path[];
 
 extern int tty;
-extern char chooser[];
 extern char session[];
 extern char username[];
 extern char dpinum[];
@@ -42,7 +43,6 @@ extern void start_X_server(void);
 extern void wait_for_X_signal(void);
 extern void start_dbus_session_bus(void);
 extern void stop_dbus_session_bus(void);
-extern void setup_consolekit_session(void);
 extern void start_ssh_agent(void);
 extern void stop_ssh_agent(void);
 extern void start_gconf(void);
@@ -65,10 +65,18 @@ extern void stop_oom_task(void);
 extern void lprintf(const char *, ...);
 extern void log_environment(void);
 
+#ifdef WITH_CONSOLEKIT
+extern void setup_consolekit_session(void);
+#endif
 
+#ifdef ENABLE_ECRYPTFS
 extern void setup_efs(void);
+#endif
 
+#ifdef ENABLE_CHOOSER
+extern char chooser[];
 extern void setup_chooser(void);
+#endif
 
 #define NORMAL 0
 #define NICE 1

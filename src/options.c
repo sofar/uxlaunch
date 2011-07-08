@@ -27,7 +27,9 @@
 
 /* builtin defaults */
 int tty = 1;
+#ifdef ENABLE_CHOOSER
 char chooser[256] = "";
+#endif
 char session[256] = "default";
 char username[256] = "meego";
 char dpinum[256] = "auto";
@@ -37,7 +39,9 @@ int verbose = 0;
 int x_session_only = 0;
 
 static struct option opts[] = {
+#ifdef ENABLE_CHOOSER
 	{ "chooser",  1, NULL, 'c' },
+#endif
 	{ "user",     1, NULL, 'u' },
 	{ "tty",      1, NULL, 't' },
 	{ "session",  1, NULL, 's' },
@@ -51,7 +55,9 @@ static struct option opts[] = {
 void usage(const char *name)
 {
 	printf("Usage: %s [OPTION...] [-- [session cmd] [session args]]\n", name);
+#ifdef ENABLE_CHOOSER
 	printf("  -c, --chooser   Start specified UX chooser\n");
+#endif
 	printf("  -u, --user      Start session as specific username\n");
 	printf("  -t, --tty       Start session on alternative tty number\n");
 	printf("  -s, --session   Start a non-default session\n");
@@ -179,8 +185,10 @@ void get_options(int argc, char **argv)
 
 			// todo: filter leading/trailing whitespace
 
+#ifdef ENABLE_CHOOSER
 			if (!strcmp(key, "chooser"))
 				strncpy(chooser, val, 256);
+#endif
 			if (!strcmp(key, "user"))
 				strncpy(username, val, 256);
 			if (!strcmp(key, "tty"))
@@ -198,14 +206,22 @@ void get_options(int argc, char **argv)
 
 	/* parse cmdline - overrides */
 	while (1) {
-		c = getopt_long(argc, argv, "c:u:t:s:hvx", opts, &i);
+		c = getopt_long(argc, argv,
+#ifdef ENABLE_CHOOSER
+				"c:u:t:s:hvx",
+#else
+				"u:t:s:hvx",
+#endif
+				opts, &i);
 		if (c == -1)
 			break;
 
 		switch (c) {
+#ifdef ENABLE_CHOOSER
 		case 'c':
 			strncpy(chooser, optarg, 256);
 			break;
+#endif
 		case 'u':
 			strncpy(username, optarg, 256);
 			break;

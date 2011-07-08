@@ -24,8 +24,24 @@ AC_CHECK_LIB([rt], [main], , AC_MSG_ERROR([librt is required but was not found])
 
 # PkgConfig tests
 PKG_CHECK_MODULES([DBUS], [dbus-1])
-PKG_CHECK_MODULES([CONSOLEKIT], [ck-connector >= 0.4])
+
 PKG_CHECK_MODULES([GLIB2], [glib-2.0])
+
+AC_ARG_WITH([ck-connector], AS_HELP_STRING([--with-ck-connector], [Build with ConsoleKit connector support (default: autodetect)]))
+AS_IF([test "x$with_ck_connector" != xno], [
+    PKG_CHECK_MODULES([CONSOLEKIT], [ck-connector >= 0.4])
+    AC_DEFINE([WITH_CONSOLEKIT], [1], [Enable ConsoleKit support])
+])
+AM_CONDITIONAL([WITH_CONSOLEKIT], [test "x$CONSOLEKIT_LIBS" != x])
+
+# features
+AC_ARG_ENABLE([chooser], AS_HELP_STRING([--disable-chooser], [Build with chooser support (default: enabled)]))
+AM_CONDITIONAL([ENABLE_CHOOSER], [test "x$enable_chooser" != xno])
+AS_IF([test "x$enable_chooser" != xno], AC_DEFINE([ENABLE_CHOOSER], [1], [Enable Chooser and Chooser IPC]))
+
+AC_ARG_ENABLE([ecryptfs], AS_HELP_STRING([--disable-ecryptfs], [Build with ecryptfs support (default: enabled)]))
+AM_CONDITIONAL([ENABLE_ECRYPTFS], [test "x$enable_ecryptfs" != xno])
+AS_IF([test "x$enable_ecryptfs" != xno], AC_DEFINE([ENABLE_ECRYPTFS], [1], [Enable ECryptFS support]))
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h sys/time.h syslog.h unistd.h])
@@ -49,10 +65,17 @@ AC_OUTPUT
 echo
 echo "Build configuration:"
 echo
+echo "Library support:"
 echo -n " * ConsoleKit : "
 test -n "$CONSOLEKIT_LIBS" && echo yes || echo no
 echo -n " * Pam        : "
 test -n "`echo $LIBS | grep lpam`" && echo yes || echo no
 echo -n " * Xauth      : "
 test -n "`echo $LIBS | grep lXau`" && echo yes || echo no
+echo
+echo "Feature support:"
+echo -n " * chooser    : "
+test "x$enable_chooser" != xno && echo yes || echo no
+echo -n " * ecryptfs   : "
+test "x$enable_ecryptfs" != xno && echo yes || echo no
 echo

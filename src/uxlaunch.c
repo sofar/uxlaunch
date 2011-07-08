@@ -97,16 +97,22 @@ int main(int argc, char **argv)
 
 	setup_xauth();
 
+#ifdef ENABLE_CHOOSER
 	if (chooser[0] != '\0')
 		setup_chooser();
+#endif
 
+#ifdef ENABLE_ECRYPTFS
 	setup_efs();
+#endif
 
 	start_oom_task();
 
 	setup_pam_session();
 
+#ifdef WITH_CONSOLEKIT
 	setup_consolekit_session();
+#endif
 
 	switch_to_user();
 
