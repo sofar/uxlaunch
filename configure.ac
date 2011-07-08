@@ -14,13 +14,13 @@ AC_PROG_INSTALL
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lXau':
-AC_CHECK_LIB([Xau], [main])
+AC_CHECK_LIB([Xau], [main], , AC_MSG_ERROR([libXau is required but was not found]))
 # FIXME: Replace `main' with a function in `-lpam':
-AC_CHECK_LIB([pam], [main])
+AC_CHECK_LIB([pam], [main], , AC_MSG_ERROR([libpam is required but was not found]))
 # FIXME: Replace `main' with a function in `-lpthread':
-AC_CHECK_LIB([pthread], [main])
+AC_CHECK_LIB([pthread], [main], , AC_MSG_ERROR([libpthread is required but was not found]))
 # FIXME: Replace `main' with a function in `-lrt':
-AC_CHECK_LIB([rt], [main])
+AC_CHECK_LIB([rt], [main], , AC_MSG_ERROR([librt is required but was not found]))
 
 # PkgConfig tests
 PKG_CHECK_MODULES([DBUS], [dbus-1])
@@ -45,3 +45,14 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([clock_gettime gettimeofday memset mkdir setenv strchr strdup strerror strrchr strstr uname])
 
 AC_OUTPUT
+
+echo
+echo "Build configuration:"
+echo
+echo -n " * ConsoleKit : "
+test -n "$CONSOLEKIT_LIBS" && echo yes || echo no
+echo -n " * Pam        : "
+test -n "`echo $LIBS | grep lpam`" && echo yes || echo no
+echo -n " * Xauth      : "
+test -n "`echo $LIBS | grep lXau`" && echo yes || echo no
+echo
