@@ -31,6 +31,8 @@ void start_ssh_agent(void)
 	FILE *file;
 	char line[4096];
 
+	d_in();
+
 	memset(line, 0, 4096);
 
 	file = popen("/usr/bin/ssh-agent", "r");
@@ -68,11 +70,15 @@ void start_ssh_agent(void)
 		}
 	}
 	pclose(file);
+
+	d_out();
 }
 
 void stop_ssh_agent(void)
 {
+	d_in();
 	kill(ssh_agent_pid, SIGTERM);
+	d_out();
 }
 
 /*
@@ -82,10 +88,12 @@ void start_bash(void)
 {
 	int ret;
 
+	d_in();
 	fprintf(stderr, "Starting bash shell -- type exit to continue\n");
 	ret = system("/bin/bash");
 	if (ret != EXIT_SUCCESS)
 		lprintf("bash returned an error");
+	d_out();
 }
 
 
@@ -97,9 +105,11 @@ void start_gconf(void)
 {
 	int ret;
 
+	d_in();
 	ret = system("gconftool-2 --spawn");
 	if (ret)
 		lprintf("failed to start gconftool-2: %d", ret);
+	d_out();
 }
 
 /*
@@ -109,16 +119,18 @@ void stop_gconf(void)
 {
 	int ret;
 
+	d_in();
 	ret = system("gconftool-2 --shutdown");
 	if (ret)
 		lprintf("failed to shut down gconf %d", ret);
+	d_out();
 }
 
 void init_screensaver(int lock_now)
 {
 	int ret;
 
-
+	d_in();
 	if (lock_now) {
 		ret = system("/usr/bin/gnome-screensaver");
 		if (ret)
@@ -132,6 +144,7 @@ void init_screensaver(int lock_now)
 		if (ret)
 			lprintf("failed to launch /usr/bin/gnome-screensaver");
 	}
+	d_out();
 }
 
 
@@ -146,6 +159,8 @@ void init_screensaver(int lock_now)
 void maybe_start_screensaver(void)
 {
 	char home_path[4097];
+
+	d_in();
 	sprintf(home_path, "%s/.config/lock-screen", pass->pw_dir);
 	if (!access("/etc/sysconfig/lock-screen", R_OK) ||
 	    !access(home_path, R_OK)) {
@@ -153,4 +168,5 @@ void maybe_start_screensaver(void)
 	} else {
 		init_screensaver(0);
 	}
+	d_out();
 }

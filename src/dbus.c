@@ -34,6 +34,8 @@ void start_dbus_session_bus(void)
 	int ret;
 	ssize_t result;
 
+	d_in();
+
 	if (pipe(p_fd) < 0)
 		exit(EXIT_FAILURE);
 	if (pipe(a_fd) < 0) {
@@ -64,11 +66,14 @@ void start_dbus_session_bus(void)
 
 	setenv("DBUS_SESSION_BUS_PID", dbus_pid, 1);
 	setenv("DBUS_SESSION_BUS_ADDRESS", dbus_address, 1);
+	d_out();
 }
 
 void stop_dbus_session_bus(void)
 {
+	d_in();
 	kill(atoi(dbus_pid), SIGTERM);
 	unsetenv("DBUS_SESSION_BUS_PID");
 	unsetenv("DBUS_SESSION_BUS_ADDRESS");
+	d_out();
 }

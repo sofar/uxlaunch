@@ -86,4 +86,12 @@ extern void setup_chooser(void);
 
 extern void start_daemon(int flags, char *cmd, char *args);
 
+#define d_in() dprintf("Enter: %s/%s", __FILE__, __func__)
+#define d_out() dprintf("Exit: %s/%s", __FILE__, __func__)
+#ifdef DEBUG
+#define dprintf(...) lprintf(__VA_ARGS__)
+#else
+#define dprintf(...) do {} while (0)
+#endif
+
 #endif /* ! __UXLAUNCH_H__ */

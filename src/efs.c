@@ -26,6 +26,8 @@ static int ecryptfs_automount_set()
 	const char *homedir = pass->pw_dir;
 	char *file_path;
 
+	d_in();
+
 	if (asprintf(&file_path, "%s/.ecryptfs/auto-mount", homedir) < 0) {
 		lprintf("Error: EFS: %s asprintf failed", __func__);
 		return 0;
@@ -40,6 +42,7 @@ static int ecryptfs_automount_set()
 	}
 	free(file_path);
 	/* no ecryptfs automount hint found */
+	d_out();
 	return 0;
 }
 
@@ -50,6 +53,9 @@ static int grep(const char *filename, const char *pattern)
 	size_t buf_n;
 	int ret = 1;
 	FILE *f = fopen(filename, "r");
+
+	d_in();
+
 	if (!f) {
 		lprintf("Error: EFS: unable to open %s", filename);
 		return 1;
@@ -64,6 +70,8 @@ static int grep(const char *filename, const char *pattern)
 
 	free(buf);
 	fclose(f);
+
+	d_out();
 	return ret;
 }
 
@@ -75,11 +83,14 @@ static int ecryptfs_mounted()
 {
 	char *search_pattern;
 
+	d_in();
+
 	if (asprintf(&search_pattern, " %s ecryptfs ", pass->pw_dir) < 0) {
 		lprintf("Error: EFS: %s asprintf failed", __func__);
 		return 0;
 	}
 
+	d_out();
 	return grep("/proc/mounts", search_pattern) == 0;
 }
 
@@ -88,11 +99,15 @@ static void start_greeter(void)
 {
 	int ret;
 
+	d_in();
+
 	init_screensaver(1);
 	/* wait for screensaver to close */
 	ret = system("/usr/bin/gnome-screensaver-command --wait");
 	if (ret)
 		lprintf("Failed on /usr/bin/gnome-screensaver-command --wait, rc: %d", ret);
+
+	d_out();
 }
 
 
@@ -100,6 +115,8 @@ void setup_efs(void)
 {
 	int ret;
 	pid_t pid;
+
+	d_in();
 
 	/* we need to be fast, do nothing unless absolutely needed */
 	if (!ecryptfs_automount_set())
@@ -141,6 +158,8 @@ void setup_efs(void)
 		wait_for_X_exit();
 		stop_dbus_session_bus();
 
+		dprintf("EFS: looks all done, exiting thread");
+
 		exit(0);
 	}
 
@@ -149,4 +168,6 @@ void setup_efs(void)
 		lprintf("Error: EFS: setup_efs waitpid error");
 		return;
 	}
+
+	d_out();
 }

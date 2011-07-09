@@ -39,6 +39,9 @@ static void do_env(void)
 {
 	char buf[PATH_MAX];
 	FILE *file;
+
+	d_in();
+
 	/* start with a clean environ */
 	clearenv();
 
@@ -91,6 +94,7 @@ static void do_env(void)
 	}
 
 	pclose(file);
+	d_out();
 }
 
 #define BACKLIGHT_CLASS "/sys/class/backlight"
@@ -100,6 +104,8 @@ static void set_backlight_driver_perms(const char *backlight_dir_path)
 {
 	char backlight_file_path[PATH_MAX];
 	int ret;
+
+	d_in();
 
 	snprintf(backlight_file_path, sizeof(backlight_file_path),
 		 "%s/%s", backlight_dir_path, BACKLIGHT_FILE);
@@ -111,6 +117,8 @@ static void set_backlight_driver_perms(const char *backlight_dir_path)
 	ret = chown(backlight_file_path, pass->pw_uid, pass->pw_gid);
 	if (ret)
 		lprintf("Failed to set \"%s\" ownership", backlight_file_path);
+
+	d_out();
 }
 
 static void set_backlight_perms(const char *backlight_class)
@@ -118,6 +126,8 @@ static void set_backlight_perms(const char *backlight_class)
 	DIR *dir;
 	struct dirent *entry;
 	char backlight_dir_path[PATH_MAX];
+
+	d_in();
 
 	dir = opendir(backlight_class);
 	if (dir) {
@@ -136,6 +146,8 @@ static void set_backlight_perms(const char *backlight_class)
 	} else {
 		lprintf ("Failed to opendir(\"%s\")", backlight_class);
 	}
+
+	d_out();
 }
 
 /*
@@ -152,7 +164,7 @@ void switch_to_user(void)
 	char fn[PATH_MAX];
 	int ret;
 
-	lprintf("Entering switch_to_user");
+	d_in();
 
 	initgroups(pass->pw_name, pass->pw_gid);
 
@@ -203,6 +215,8 @@ void switch_to_user(void)
 	} else {
 		lprintf("Unable to open \"%s\n\" for writing", fn);
 	}
+
+	d_out();
 }
 
 static char *scim_languages[] = { "zh_", "ja_", "ko_", "lo_", "th_" };
@@ -212,6 +226,8 @@ void setup_user_environment (void)
 	unsigned int i;
 	char buf[PATH_MAX];
 	const char *lang = getenv ("LANG");
+
+	d_in();
 
 	for (i = 0; lang && i < sizeof(scim_languages) / sizeof(scim_languages[0]); i++) {
 		if (strstr(lang, scim_languages[i])) {
@@ -228,6 +244,8 @@ void setup_user_environment (void)
 	setenv("XDG_CONFIG_HOME", buf, 0);
 	setenv("OOO_FORCE_DESKTOP","gnome", 0);
 	setenv("LIBC_FATAL_STDERR_", "1", 0);
+
+	d_out();
 }
 
 void set_i18n(void)
@@ -238,7 +256,7 @@ void set_i18n(void)
 	char *key;
 	char *val;
 
-	lprintf("entering set_i18n");
+	d_in();
 
 	/*
 	 * /etc/sysconfig/i18n contains shell code that sets
@@ -249,9 +267,11 @@ void set_i18n(void)
 	f = fopen(path, "r");
 	if (f)
 		goto parse;
+	dprintf("Unable to open ~/.config/i18n, trying /etc/sysconfig/i18n");
 	f = fopen("/etc/sysconfig/i18n", "r");
 	if (f)
 		goto parse;
+	d_out();
 	return;
 
 parse:
@@ -278,4 +298,6 @@ parse:
 			setenv(key, val, 1);
 	}
 	fclose(f);
+
+	d_out();
 }

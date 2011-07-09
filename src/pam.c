@@ -40,6 +40,8 @@ pam_conversation_fn(int msg_count,
 	int i;
 	(void)user_data;
 
+	d_in();
+
 	lprintf("pam conversation with %d messages", msg_count);
 	if (responses)
 		*responses = NULL;
@@ -66,6 +68,8 @@ pam_conversation_fn(int msg_count,
 		(*responses)[i].resp = NULL;
 		(*responses)[i].resp_retcode = PAM_SUCCESS;
 	}
+
+	d_out();
 	return PAM_SUCCESS;
 }
 
@@ -82,6 +86,8 @@ void setup_pam_session(void)
 {
 	char x[256];
 	int err;
+
+	d_in();
 
 	snprintf(x, 256, "tty%d", tty);
 
@@ -113,14 +119,18 @@ void setup_pam_session(void)
 		lprintf("pam_open_session returned %d: %s\n", err, pam_strerror(ph, err));
 		exit(EXIT_FAILURE);
 	}
+	d_out();
 }
 
 void close_pam_session(void)
 {
 	int err;
 
+	d_in();
+
 	err = pam_close_session(ph, 0);
 	if (err)
 		lprintf("pam_close_session returned %d: %s\n", err, pam_strerror(ph, err));
 	pam_end(ph, err);
+	d_out();
 }

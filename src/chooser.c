@@ -33,6 +33,8 @@ void setup_chooser(void)
 	pid_t pid;
 	gid_t old_gid;
 
+	d_in();
+
 	old_gid = getegid();
 	setegid(pass->pw_gid);
 	shm_id = shmget(IPC_PRIVATE, shm_size,
@@ -89,4 +91,6 @@ void setup_chooser(void)
 
 	shmctl(shm_id, IPC_RMID, 0);
 	setegid(old_gid);
+
+	d_out();
 }

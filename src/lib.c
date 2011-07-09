@@ -79,14 +79,16 @@ void lprintf(const char* fmt, ...)
 
 void log_environment(void)
 {
+	/* stub with debugging disabled */
+#ifdef DEBUG
 	char **env;
 
 	env = environ;
-
 	lprintf("--- environment variable dump:");
 	while (*env) {
 		lprintf("    %s", *env);
 		env++;
 	}
 	lprintf("---");
+#endif
 }

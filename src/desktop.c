@@ -71,6 +71,8 @@ static int file_expand_exists(const char *path)
 	wordexp_t p;
 	char **w;
 
+	d_in();
+
 	/* don't expand backticks and shell calls like $(foo) */
 	wordexp(path, &p, WRDE_NOCMD | WRDE_UNDEF);
 	w = p.we_wordv;
@@ -90,6 +92,8 @@ static int file_expand_exists(const char *path)
 	}
 
 	wordfree(&p);
+
+	d_out();
 	return 0;
 }
 
@@ -98,16 +102,21 @@ static void desktop_entry_add(const gchar *file, const gchar *exec, int prio, in
 	GList *item;
 	struct desktop_entry_struct *entry;
 
+	d_in();
+
 	/* make sure we don't insert items twice */
 	item = g_list_first(desktop_entries);
 	while (item) {
 		entry = item->data;
-		if (!strcmp(entry->file, file))
+		if (!strcmp(entry->file, file)) {
+			dprintf("Overwriting existing entry: %s", file);
 			/* overwrite existing entry with higher priority */
 			goto overwrite;
+		}
 		item = g_list_next(item);
 	}
 
+	dprintf("Inserting new entry: %s", file);
 	entry = malloc(sizeof(struct desktop_entry_struct));
 	if (!entry) {
 		lprintf("Error allocating memory for desktop entry");
@@ -119,9 +128,14 @@ overwrite:
 	entry->exec = g_strdup(exec);
 	entry->file = g_strdup(file);
 	entry->watchdog = wd;
-	if (entry->exec)
-		lprintf("Adding %s with prio %d", entry->file, entry->prio);
+	if (entry->exec) {
+		lprintf("Adding %s with prio %d", file, entry->prio);
+	} else {
+		//dprintf("Hiding %s", file);
+	}
 	desktop_entries = g_list_prepend(desktop_entries, entry);
+
+	d_out();
 }
 
 
@@ -166,6 +180,8 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	gchar *filename = NULL;
 	int wd = 0;
 
+	d_in();
+
 	filename = g_strdup_printf("%s/%s", dir, file);
 
 	int prio = 1; /* medium/normal prio */
@@ -205,6 +221,8 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	if (onlyshowin_key) {
 		gchar **partial;
 		int n;
+
+		dprintf("OnlyShowIn=%s", onlyshowin_key);
 		partial = g_strsplit(onlyshowin_key, ";", -1);
 
 		for (n = 0; partial[n] != NULL; n++) {
@@ -218,6 +236,8 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	if (notshowin_key) {
 		gchar **partial;
 		int n;
+
+		dprintf("NotShowIn=%s", notshowin_key);
 		partial = g_strsplit(notshowin_key, ";", -1);
 
 		for (n = 0; partial[n] != NULL; n++) {
@@ -266,11 +286,14 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 	}
 
 	desktop_entry_add(file, g_shell_unquote(exec_key, &error), prio, wd);
+	dprintf("NOT hiding %s", file);
 	goto done;
 hide:
+	dprintf("Hiding %s", file);
 	desktop_entry_add(file, NULL, -1, wd);
 done:
 	g_free(filename);
+	d_out();
 }
 
 
@@ -283,6 +306,7 @@ void get_session_type(void)
 	char *c;
 	struct stat st;
 
+	d_in();
 	/*
 	 * DE Session setup
 	 *
@@ -385,6 +409,7 @@ session_done:
 	lprintf("Session program = \"%s\"", session_exec);
 
 	setenv("X_DESKTOP_SESSION", session_filter, 1);
+	d_out();
 }
 
 
@@ -450,7 +475,7 @@ void autostart_desktop_files(void)
 	gchar *x = NULL;
 	int count = 0;
 
-	lprintf("Entering autostart_desktop_files");
+	d_in();
 
 	if (getenv("XDG_CONFIG_HOME"))
 		xdg_config_home = g_strdup(getenv("XDG_CONFIG_HOME"));
@@ -480,6 +505,8 @@ void autostart_desktop_files(void)
 
 	g_strfreev(xdg_config_dir);
 	g_free(xdg_config_home);
+
+	d_out();
 }
 
 
@@ -489,7 +516,7 @@ void do_autostart(void)
 	struct desktop_entry_struct *entry;
 	int restarts = 0;
 
-	lprintf("Entering do_autostart");
+	d_in();
 
 	/* sort by priority */
 	desktop_entries = g_list_sort(desktop_entries, sort_entries);
@@ -522,7 +549,7 @@ void do_autostart(void)
 		} else {
 			delay += ((1 << (entry->prio + 1)) * DELAY_UNIT);
 		}
-		lprintf("Queueing %s with prio %d at %d", entry->exec, entry->prio, delay);
+		dprintf("Queueing %s:%s with prio %d at %d", entry->file, entry->exec, entry->prio, delay);
 
 		if (fork()) {
 			item = g_list_next(item);
@@ -541,7 +568,7 @@ void do_autostart(void)
 			ptrs[++count] = strtok(NULL, " \t");
 
 		usleep(delay);
-		lprintf("Starting %s with prio %d at %d", entry->exec, entry->prio, delay);
+		dprintf("Starting %s:%s with prio %d at %d", entry->file, entry->exec, entry->prio, delay);
 
 		/* watchdog handling */
 		if (entry->watchdog == WD_NONE) {
@@ -564,25 +591,25 @@ restart:
 		ret = waitpid(pid, &status, 0);
 
 		if (WIFEXITED(status))
-			lprintf("process %d (%s) exited with exit code %d",
-				ret, entry->exec, WEXITSTATUS(status));
+			lprintf("process %d (%s:%s) exited with exit code %d",
+				ret, entry->file, entry->exec, WEXITSTATUS(status));
 
 		if (WIFSIGNALED(status))
-			lprintf("process %d (%s) was killed by signal %d",
-				ret, entry->exec, WTERMSIG(status));
+			lprintf("process %d (%s:%s) was killed by signal %d",
+				ret, entry->file, entry->exec, WTERMSIG(status));
 
 		if (((entry->watchdog == WD_FAIL) && (WEXITSTATUS(status))) ||
 		    ((entry->watchdog == WD_FAIL) && (WIFSIGNALED(status))) ||
 		     (entry->watchdog == WD_RESTART)) {
 			/* safety: reasonable sleep here */
 			sleep((restarts++ < 5) ? restarts : 900); /* 15 mins */
-			lprintf("Watchdog: restarting %s", entry->exec);
+			lprintf("Watchdog: restarting %s:%s", entry->file, entry->exec);
 			goto restart;
 		}
 
 		if (entry->watchdog == WD_HALT) {
 			/* tear down the session */
-			lprintf("Watchdog: %s exited, tearing down session", entry->exec);
+			lprintf("Watchdog: %s:%s exited, tearing down session", entry->file, entry->exec);
 			kill(session_pid, SIGTERM);
 			exit(EXIT_FAILURE);
 		}
@@ -590,11 +617,14 @@ restart:
 		lprintf("Watchdog: unhandled exception");
 		exit(EXIT_FAILURE);
 	}
+
+	d_out();
 }
 
 void wait_for_session_exit(void)
 {
-	lprintf("wait_for_session_exit");
+	d_in();
+
 	for (;;) {
 		errno = 0;
 		if (waitpid (session_pid, NULL, 0) < 0) {
@@ -608,7 +638,7 @@ void wait_for_session_exit(void)
 		break;
 	}
 
-	lprintf("session exited");
+	d_out();
 }
 
 void start_desktop_session(void)
@@ -616,6 +646,8 @@ void start_desktop_session(void)
 	int ret;
 	int count = 0;
 	char *ptrs[256];
+
+	d_in();
 
 	ret = fork();
 
@@ -640,4 +672,6 @@ void start_desktop_session(void)
 
 	if (ret != EXIT_SUCCESS)
 		lprintf("Failed to start %s", session_exec);
+
+	d_out();
 }

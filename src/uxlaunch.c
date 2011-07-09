@@ -28,6 +28,8 @@ launch_user_session(void)
 {
 	char xhost_cmd[80];
 
+	dprintf("entering launch_user_session()");
+
 	setup_user_environment();
 
 	/* this needs XDG_* set in environ */
@@ -56,6 +58,7 @@ launch_user_session(void)
 
 	autostart_desktop_files();
 	do_autostart();
+	dprintf("leaving launch_user_session()");
 }
 
 int main(int argc, char **argv)
@@ -87,6 +90,7 @@ int main(int argc, char **argv)
 	get_options(argc, argv);
 
 	if (x_session_only) {
+		dprintf("X session only: skipping major parts of setup");
 		launch_user_session();
 		wait_for_session_exit();
 		stop_gconf();
@@ -122,6 +126,7 @@ int main(int argc, char **argv)
 	 * we call udevadm settle and force the system to wait for
 	 * device probing to complete, which may be a long time
 	 */
+	dprintf("Waiting for udev to settle for 10 seconds max...");
 	if (system("/sbin/udevadm settle --timeout 10") != EXIT_SUCCESS)
 		lprintf("udevadm settle bash returned an error");
 

@@ -43,6 +43,12 @@ AC_ARG_ENABLE([ecryptfs], AS_HELP_STRING([--disable-ecryptfs], [Build with ecryp
 AM_CONDITIONAL([ENABLE_ECRYPTFS], [test "x$enable_ecryptfs" != xno])
 AS_IF([test "x$enable_ecryptfs" != xno], AC_DEFINE([ENABLE_ECRYPTFS], [1], [Enable ECryptFS support]))
 
+AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [enable debug data generation (default: disabled)]))
+if test x"$enable_debug" == x"yes"; then
+    AC_DEFINE([DEBUG],[1],[Debug Mode])
+    AM_CFLAGS="$AM_CFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
+fi
+
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h sys/time.h syslog.h unistd.h])
 
@@ -78,4 +84,6 @@ echo -n " * chooser    : "
 test "x$enable_chooser" != xno && echo yes || echo no
 echo -n " * ecryptfs   : "
 test "x$enable_ecryptfs" != xno && echo yes || echo no
+echo -n " * debugging  : "
+test "x$enable_debug" == xyes && echo yes || echo no
 echo

@@ -61,7 +61,7 @@ void set_tty(void)
 	int fd;
 	struct vt_stat v;
 
-	lprintf("Entering set_tty");
+	d_in();
 
 	/* switch to this console */
 	fd = open("/dev/console", O_RDWR);
@@ -85,6 +85,8 @@ void set_tty(void)
 	snprintf(displaydev, PATH_MAX, "/dev/tty%d", tty);
 
 	lprintf("Using %s as display device", displaydev);
+
+	d_out();
 }
 
 void setup_xauth(void)
@@ -97,6 +99,8 @@ void setup_xauth(void)
 	static char xau_address[80];
 	static char xau_number[] = "0"; // FIXME, detect correct displaynum
 	static char xau_name[] = "MIT-MAGIC-COOKIE-1";
+
+	d_in();
 
 	fp = fopen("/dev/urandom", "r");
 	if (!fp)
@@ -148,6 +152,8 @@ void setup_xauth(void)
 		lprintf("unable to write xauth data to disk");
 
 	fclose(fp);
+
+	d_out();
 }
 
 static void usr1handler(int foo)
@@ -155,6 +161,7 @@ static void usr1handler(int foo)
 	/* Got the signal from the X server that it's ready */
 	if (foo++) foo--; /*  shut down warning */
 
+	dprintf("received USR1");
 	pthread_mutex_lock(&notify_mutex);
 	pthread_cond_signal(&notify_condition);
 	pthread_mutex_unlock(&notify_mutex);
@@ -164,6 +171,8 @@ static void usr1handler(int foo)
 static void termhandler(int foo)
 {
 	if (foo++) foo--; /*  shut down warning */
+
+	d_in();
 
 	exiting = 1;
 	/*
@@ -178,6 +187,7 @@ static void termhandler(int foo)
 		kill(session_pid, SIGKILL);
 
 	kill(xpid, SIGTERM);
+	d_out();
 }
 
 
@@ -205,6 +215,8 @@ void start_X_server(void)
 	FILE *fp;
 	char fn[PATH_MAX];
 
+	d_in();
+
 	/* Step 1: arm the signal */
 	memset(&usr1, 0, sizeof(struct sigaction));
 	usr1.sa_handler = usr1handler;
@@ -220,6 +232,7 @@ void start_X_server(void)
 		term.sa_handler = termhandler;
 		sigaction(SIGTERM, &term, NULL);
 		sigaction(SIGINT, &term, NULL);
+		d_out();
 		return; /* we're the main thread */
 	}
 
@@ -256,6 +269,7 @@ void start_X_server(void)
 	/* non-suid root Xorg? */
 	ret = stat(xserver, &statbuf);
 	if (!(!ret && (statbuf.st_mode & S_ISUID))) {
+		lprintf("ERROR: Xorg is setuid root - please report this issue!");
 		snprintf(xorg_log, PATH_MAX, "%s/.Xorg.0.log", pass->pw_dir);
 		ptrs[++count] = strdup("-logfile");
 		ptrs[++count] = xorg_log;
@@ -263,6 +277,7 @@ void start_X_server(void)
 
 	/* dpi */
 	if (strcmp(dpinum, "auto")) {
+		lprintf("Forcing DPI=%s", dpinum);
 		/* hard-coded dpi */
 		ptrs[++count] = strdup("-dpi");
 		ptrs[++count] = dpinum;
@@ -278,7 +293,7 @@ void start_X_server(void)
 
 	opt = strtok(addn_xopts, " ");
 	while (opt) {
-	  lprintf("adding xopt: \"%s\"", opt);
+	  dprintf("adding xopt: \"%s\"", opt);
 		ptrs[++count] = strdup(opt);
 		opt = strtok(NULL, " ");
 	}
@@ -304,6 +319,8 @@ void start_X_server(void)
 
 	execv(ptrs[0], ptrs);
 
+	d_out();
+
 	exit(EXIT_FAILURE);
 }
 
@@ -314,15 +331,17 @@ void start_X_server(void)
 void wait_for_X_signal(void)
 {
 	struct timespec tv;
-	lprintf("Entering wait_for_X_signal");
+
+	d_in();
+
 	clock_gettime(CLOCK_REALTIME, &tv);
 	tv.tv_sec += 10;
 
 	pthread_mutex_lock(&notify_mutex);
 	pthread_cond_timedwait(&notify_condition, &notify_mutex, &tv);
 	pthread_mutex_unlock(&notify_mutex);
-	lprintf("done");
 
+	d_out();
 }
 
 void wait_for_X_exit(void)
@@ -330,7 +349,8 @@ void wait_for_X_exit(void)
 	int ret;
 	int status;
 
-	lprintf("wait_for_X_exit");
+	d_in();
+
 	while (!exiting) {
 		ret = waitpid(-1, &status, 0);
 
@@ -353,13 +373,15 @@ void wait_for_X_exit(void)
 			kill(xpid, SIGTERM);
 		}
 	}
+
+	d_out();
 }
 
 void set_text_mode(void)
 {
 	int fd;
 
-	lprintf("Setting console mode to KD_TEXT");
+	d_in();
 
 	fd = open(displaydev, O_RDWR);
 
@@ -371,4 +393,5 @@ void set_text_mode(void)
 	if (fd != 0)
 		close(fd);
 
+	d_out();
 }

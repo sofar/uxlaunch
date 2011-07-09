@@ -73,6 +73,8 @@ static void get_dmi_dpi(void)
 	FILE *f;
 	char boardname[PATH_MAX];
 
+	d_in();
+
 	f = fopen("/etc/boardname", "r");
 	if (!f) {
 		lprintf("Unable to open /etc/boardname");
@@ -84,6 +86,7 @@ static void get_dmi_dpi(void)
 		return;
 	}
 	fclose(f);
+	dprintf("boardname=%s", boardname);
 
 	f = fopen("/usr/share/uxlaunch/dmi-dpi", "r");
 	if (!f) {
@@ -96,7 +99,8 @@ static void get_dmi_dpi(void)
 		if (fscanf(f, "%s %s", b, dpi) < 0) {
 			fclose(f);
 			return;
-		}	
+		}
+		dprintf("dmi-dpi entry: boardname=%s dpi=%s", b, dpi);
 		if (!strcmp(boardname, b)) {
 			strncpy(dpinum, dpi, sizeof(dpinum)-1);
 			lprintf("Using dpi=%s based on dmi-dpi table", dpinum);
@@ -105,6 +109,8 @@ static void get_dmi_dpi(void)
 		}
 	}
 	fclose(f);
+
+	d_out();
 }
 
 void get_options(int argc, char **argv)
@@ -115,6 +121,7 @@ void get_options(int argc, char **argv)
 	DIR *dir;
 	struct dirent *entry;
 
+	d_in();
 	/*
 	 * default fallbacks are listed above in the declations
 	 * each step below overrides them in order
@@ -138,14 +145,15 @@ void get_options(int argc, char **argv)
 			continue;
 
 		u = strdup(entry->d_name);
+		dprintf("Found potential user folder %s", u);
 		/* check if this is actually a valid user */
 		p = getpwnam(u);
 		if (!p)
-			continue;
+			continue; // FIXME: small leak
 		/* and make sure this is actually the guys homedir */
 		snprintf(buf, 80, "/home/%s", u);
 		if (strcmp(p->pw_dir, buf))
-			continue;
+			continue; // FIXME: small leak
 		strncpy(username, u, 256);
 		free(u);
 	}
@@ -172,6 +180,8 @@ void get_options(int argc, char **argv)
 
 			c = strchr(buf, '\n');
 			if (c) *c = 0; /* remove trailing \n */
+
+			dprintf("config file: %s", buf);
 
 			if (buf[0] == '#')
 				continue; /* comment line */
@@ -268,4 +278,5 @@ void get_options(int argc, char **argv)
 		lprintf("Error: can't find user \"%s\"", username);
 		exit(EXIT_FAILURE);
 	}
+	d_out();
 }

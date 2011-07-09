@@ -44,6 +44,8 @@ void setup_consolekit_session(void)
 	char *n = &displayname[0];
 	int is_local = 1;
 
+	d_in();
+
 	connector = ck_connector_new();
 	if (!connector)
 		exit(EXIT_FAILURE);
@@ -71,6 +73,7 @@ void setup_consolekit_session(void)
 	 * put the session cookie up as an environment variable
 	 */
 	setenv("XDG_SESSION_COOKIE", ck_connector_get_cookie(connector), 1);
+	d_out();
 }
 
 
@@ -79,6 +82,8 @@ void setup_consolekit_session(void)
  */
 void close_consolekit_session(void)
 {
+	d_in();
+
 	DBusError error;
 
 	dbus_error_init(&error);
@@ -86,4 +91,5 @@ void close_consolekit_session(void)
 		ck_connector_close_session(connector, &error);
 
 	unsetenv("XDG_SESSION_COOKIE");
+	d_out();
 }
