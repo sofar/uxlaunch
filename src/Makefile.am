@@ -1,4 +1,4 @@
-bin_PROGRAMS = uxlaunch
+sbin_PROGRAMS = uxlaunch
 uxlaunch_SOURCES = dbus.c desktop.c lib.c misc.c oom_adj.c options.c pam.c \
 		user.c uxlaunch.c xserver.c
 
