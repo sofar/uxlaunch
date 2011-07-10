@@ -87,7 +87,7 @@ static void do_env(void)
 			c2 = strchr(c, '"');
 			if (c2)
 				*c2 = 0;
-			lprintf("Setting %s to %s\n", &buf[11], c);
+			dprintf("Setting %s to %s\n", &buf[11], c);
 			setenv(&buf[11], c, 1);
 		}
 

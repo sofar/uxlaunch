@@ -128,11 +128,11 @@ overwrite:
 	entry->exec = g_strdup(exec);
 	entry->file = g_strdup(file);
 	entry->watchdog = wd;
-	if (entry->exec) {
-		lprintf("Adding %s with prio %d", file, entry->prio);
-	} else {
-		//dprintf("Hiding %s", file);
-	}
+	if (entry->exec)
+		dprintf("Adding %s with prio %d", file, entry->prio);
+	else 
+		dprintf("Hiding %s", file);
+
 	desktop_entries = g_list_prepend(desktop_entries, entry);
 
 	d_out();
@@ -186,7 +186,7 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 
 	int prio = 1; /* medium/normal prio */
 
-	lprintf("Parsing %s", filename);
+	dprintf("Parsing %s", filename);
 
 	keyfile = g_key_file_new();
 	if (!g_key_file_load_from_file(keyfile, filename, 0, &error)) {
@@ -660,8 +660,6 @@ void start_desktop_session(void)
 		session_pid = ret;
 		return; /* parent continues */
 	}
-
-	lprintf("Entering start_desktop_session");
 
 	ret = system("/usr/bin/xdg-user-dirs-update");
 	if (ret)

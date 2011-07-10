@@ -84,11 +84,11 @@ void log_environment(void)
 	char **env;
 
 	env = environ;
-	lprintf("--- environment variable dump:");
+	dprintf("--- environment variable dump:");
 	while (*env) {
-		lprintf("    %s", *env);
+		dprintf("    %s", *env);
 		env++;
 	}
-	lprintf("---");
+	dprintf("---");
 #endif
 }
