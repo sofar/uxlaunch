@@ -226,13 +226,17 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 		partial = g_strsplit(onlyshowin_key, ";", -1);
 
 		for (n = 0; partial[n] != NULL; n++) {
+			dprintf("...%s", partial[n]);
 			if (!g_ascii_strcasecmp(partial[n], session_filter)) {
 				g_strfreev(partial);
-				goto hide;
+				goto notshowin;
 			}
 		}
 		g_strfreev(partial);
+		/* nothing matched - hide */
+		goto hide;
 	}
+notshowin:
 	if (notshowin_key) {
 		gchar **partial;
 		int n;
@@ -241,7 +245,8 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 		partial = g_strsplit(notshowin_key, ";", -1);
 
 		for (n = 0; partial[n] != NULL; n++) {
-			if (g_ascii_strcasecmp(partial[n], session_filter)) {
+			dprintf("...%s", partial[n]);
+			if (!g_ascii_strcasecmp(partial[n], session_filter)) {
 				g_strfreev(partial);
 				goto hide;
 			}
