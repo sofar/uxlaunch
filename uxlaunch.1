@@ -7,7 +7,7 @@ uxlaunch \- program to start the X desktop
 .RB [\-\-
 .RB \fBSESSION\fR]
 .SH DESCRIPTION
-.Pp
+.TP
 \fBuxlaunch\fP is a program that initiates the X server and desktop environment. It starts the main component of the desktop up as soon as the X server is ready and relies on autostart .desktop files for other applications to be started. uxlaunch Was designed to start the Moblin desktop but can launch Gnome, Xfce and other desktop sessions as well.
 .TP
 uxlaunch Works as a generic session launcher and prepares dbus, ssh-agent and ConsoleKit for the user session, launches the Xorg server, and then hands over session management to a session process (usually a main component such as mutter, the window mananger or something like xfce4-session. uxlaunch Also initializes the environment variables as close as it can to what a normal shell login would set.
