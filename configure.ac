@@ -49,6 +49,15 @@ if test x"$enable_debug" == x"yes"; then
     AM_CFLAGS="$AM_CFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
 fi
 
+AC_ARG_WITH([systemdunitdir], AC_HELP_STRING([--with-systemdunitdir=DIR],
+	[path to systemd service directory]), [path_systemdunit=${withval}],
+	[path_systemdunit="`$PKG_CONFIG --variable=systemdsystemunitdir systemd`"])
+if (test -n "${path_systemdunit}"); then
+SYSTEMD_UNITDIR="${path_systemdunit}"
+AC_SUBST(SYSTEMD_UNITDIR)
+fi
+AM_CONDITIONAL(SYSTEMD, test -n "${path_systemdunit}")
+
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h sys/time.h syslog.h unistd.h])
 
@@ -66,7 +75,7 @@ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([clock_gettime gettimeofday memset mkdir setenv strchr strdup strerror strrchr strstr uname])
 
-AC_OUTPUT
+AC_OUTPUT(uxlaunch.service)
 
 echo
 echo "Build configuration:"
@@ -86,4 +95,6 @@ echo -n " * ecryptfs   : "
 test "x$enable_ecryptfs" != xno && echo yes || echo no
 echo -n " * debugging  : "
 test "x$enable_debug" == xyes && echo yes || echo no
+echo -n " * systemd    : "
+test "x$path_systemdunit" == x && echo no || echo yes
 echo

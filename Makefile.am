@@ -6,6 +6,11 @@ noinst_DATA = uxlaunch.sysconfig dmi-dpi
 
 EXTRA_DIST = AUTHORS COPYING INSTALL $(noinst_DATA) $(man_MANS)
 
+if SYSTEMD
+systemdunitdir = @SYSTEMD_UNITDIR@
+systemdunit_DATA = uxlaunch.service
+endif
+
 install-data-local:
 	$(MKDIR_P) $(DESTDIR)$(sysconfdir)/sysconfig
 	$(install_sh_DATA) uxlaunch.sysconfig $(DESTDIR)$(sysconfdir)/sysconfig/uxlaunch
