@@ -159,7 +159,6 @@ static void set_backlight_perms(const char *backlight_class)
  */
 void switch_to_user(void)
 {
-	int result;
 	FILE *fp;
 	char fn[PATH_MAX];
 	int ret;
@@ -195,7 +194,7 @@ void switch_to_user(void)
 
 	set_i18n();
 
-	result = chdir(pass->pw_dir);
+	ret = chdir(pass->pw_dir);
 
 	fp = fopen(user_xauth_path, "w");
 	if (fp) {
