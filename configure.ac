@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([uxlaunch],[0.63],[auke-jan.h.kok@intel.com])
+AC_INIT([uxlaunch],[0.64],[auke-jan.h.kok@intel.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_SRCDIR([src/uxlaunch.c])
