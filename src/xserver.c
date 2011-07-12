@@ -269,10 +269,11 @@ void start_X_server(void)
 	/* non-suid root Xorg? */
 	ret = stat(xserver, &statbuf);
 	if (!(!ret && (statbuf.st_mode & S_ISUID))) {
-		lprintf("ERROR: Xorg is setuid root - please report this issue!");
 		snprintf(xorg_log, PATH_MAX, "%s/.Xorg.0.log", pass->pw_dir);
 		ptrs[++count] = strdup("-logfile");
 		ptrs[++count] = xorg_log;
+	} else {
+		lprintf("ERROR: Xorg is setuid root - please report this issue!");
 	}
 
 	/* dpi */
