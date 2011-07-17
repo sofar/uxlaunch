@@ -517,16 +517,75 @@ void autostart_desktop_files(void)
 }
 
 
+void do_timeout(void)
+{
+	FILE *uptime;
+	float in, out;
+	int ret;
+	int c = 0;
+
+	uptime = fopen("/proc/uptime", "r");
+	if (!uptime) {
+		lprintf("Unable to open /proc/uptime! disabling synchronization!");
+		return;
+	}
+
+	ret = fscanf(uptime, "%*f %f", &in);
+	if (ret < 1) {
+		lprintf("Error reading /proc/uptime (%d)! disabling synchronization!", ret);
+		return;
+	}
+
+	dprintf("do_timeout: in with %.03f", in);
+	while(1) {
+		usleep(100000);
+		c++;
+
+		rewind(uptime);
+		ret = fscanf(uptime, "%*f %f", &out);
+		if (ret < 1) {
+			lprintf("Error reading /proc/uptime(%d)! disabling synchronization!", ret);
+			break;
+		}
+
+		/* exit condition: there is "some" idle time available */
+		if (((out - in) / ((c > 5) ? 5.0 : c)) > 0.1)
+			break;
+
+		/* don't wait more than 5 seconds ever */
+		if (c >= 50)
+			break;
+	}
+	dprintf("do_timeout: out with %.03f (%0.1fsecs)", out, c / 10.0);
+
+	fclose(uptime);
+}
+
+
 void do_autostart(void)
 {
 	GList *item;
 	struct desktop_entry_struct *entry;
 	int restarts = 0;
+	int last_prio = -1;
 
 	d_in();
 
 	/* sort by priority */
 	desktop_entries = g_list_sort(desktop_entries, sort_entries);
+
+#if DEBUG
+	dprintf("desktop file queue:");
+	item = g_list_first(desktop_entries);
+	while (item) {
+		entry = item->data;
+		dprintf("==== file=%s ====", entry->file);
+		dprintf("exec=%s", entry->exec);
+		dprintf("prio=%d", entry->prio);
+		dprintf("wdog=%s", entry->watchdog);
+		item = g_list_next(item);
+	}
+#endif /* DEBUG */
 
 	item = g_list_first(desktop_entries);
 
@@ -557,6 +616,17 @@ void do_autostart(void)
 			delay += ((1 << (entry->prio + 1)) * DELAY_UNIT);
 		}
 		dprintf("Queueing %s:%s with prio %d at %d", entry->file, entry->exec, entry->prio, delay);
+
+		/*
+		 *  do some semi-synchronization:
+		 *
+		 * - stop forking if we are going to the next prio step
+		 * - wait until the system settles a bit
+		 */
+
+		if (entry->prio != last_prio)
+			do_timeout();
+		last_prio = entry->prio;
 
 		if (fork()) {
 			item = g_list_next(item);
