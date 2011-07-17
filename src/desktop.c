@@ -111,19 +111,21 @@ static void desktop_entry_add(const gchar *file, const gchar *exec, int prio, in
 		if (!strcmp(entry->file, file)) {
 			dprintf("Overwriting existing entry: %s", file);
 			/* overwrite existing entry with higher priority */
+			desktop_entries = g_list_remove(desktop_entries, entry);
 			goto overwrite;
 		}
 		item = g_list_next(item);
 	}
 
 	dprintf("Inserting new entry: %s", file);
+
+overwrite:
 	entry = malloc(sizeof(struct desktop_entry_struct));
 	if (!entry) {
 		lprintf("Error allocating memory for desktop entry");
 		return;
 	}
 
-overwrite:
 	entry->prio = prio; /* panels start at highest prio */
 	entry->exec = g_strdup(exec);
 	entry->file = g_strdup(file);
