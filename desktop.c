@@ -433,7 +433,6 @@ void do_timeout(void)
 		return;
 	}
 
-	dprintf("do_timeout: in with %.03f", in);
 	while(1) {
 		usleep(100000);
 		c++;
@@ -453,7 +452,7 @@ void do_timeout(void)
 		if (c >= 50)
 			break;
 	}
-	dprintf("do_timeout: out with %.03f (%0.1fsecs)", out, c / 10.0);
+	lprintf("do_timeout: done after %0.1fsecs", c / 10.0);
 
 	fclose(uptime);
 }
