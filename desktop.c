@@ -471,19 +471,6 @@ void do_autostart(void)
 	/* sort by priority */
 	desktop_entries = g_list_sort(desktop_entries, sort_entries);
 
-#if DEBUG
-	dprintf("desktop file queue:");
-	item = g_list_first(desktop_entries);
-	while (item) {
-		entry = item->data;
-		dprintf("==== file=%s ====", entry->file);
-		dprintf("exec=%s", entry->exec);
-		dprintf("prio=%d", entry->prio);
-		dprintf("wdog=%s", entry->watchdog);
-		item = g_list_next(item);
-	}
-#endif /* DEBUG */
-
 	item = g_list_first(desktop_entries);
 
 	while (item) {
