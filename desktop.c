@@ -492,7 +492,7 @@ void do_autostart(void)
 			continue;
 		}
 
-		if (entry->prio != last_prio)
+		if ((entry->prio != last_prio) || (entry->prio >= 3))
 			do_timeout();
 		last_prio = entry->prio;
 
