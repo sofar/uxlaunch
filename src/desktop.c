@@ -517,48 +517,52 @@ void autostart_desktop_files(void)
 }
 
 
-void do_timeout(void)
+int uptime(float *up)
 {
 	FILE *uptime;
-	float in, out;
 	int ret;
-	int c = 0;
 
 	uptime = fopen("/proc/uptime", "r");
 	if (!uptime) {
 		lprintf("Unable to open /proc/uptime! disabling synchronization!");
-		return;
+		return -1;
 	}
 
-	ret = fscanf(uptime, "%*f %f", &in);
+	ret = fscanf(uptime, "%*f %f", up);
 	if (ret < 1) {
 		lprintf("Error reading /proc/uptime (%d)! disabling synchronization!", ret);
-		return;
+		return -1;
 	}
 
-	dprintf("do_timeout: in with %.03f", in);
+	fclose(uptime);
+	return 0;
+}
+
+
+void do_timeout(void)
+{
+	float in, out;
+	int c = 0;
+
+	if (uptime(&in))
+		return;
+
 	while(1) {
 		usleep(100000);
 		c++;
 
-		rewind(uptime);
-		ret = fscanf(uptime, "%*f %f", &out);
-		if (ret < 1) {
-			lprintf("Error reading /proc/uptime(%d)! disabling synchronization!", ret);
-			break;
-		}
+		if (uptime(&out))
+			return;
 
 		/* exit condition: there is "some" idle time available */
 		if (((out - in) / ((c > 5) ? 5.0 : c)) > 0.1)
 			break;
 
-		/* don't wait more than 5 seconds ever */
-		if (c >= 50)
+		/* don't wait more than 15 seconds ever */
+		if (c >= 150)
 			break;
 	}
-	dprintf("do_timeout: out with %.03f (%0.1fsecs)", out, c / 10.0);
-
-	fclose(uptime);
+	lprintf("do_timeout: done after %0.1fsecs", c / 10.0);
 }
 
 
@@ -593,7 +597,6 @@ void do_autostart(void)
 		char *ptrs[256];
 		int count = 0;
 		int ret = 0;
-		int late = 0;
 		int pid;
 		int status;
 
@@ -605,26 +608,7 @@ void do_autostart(void)
 			continue;
 		}
 
-		if (entry->prio >= 3) {
-			if (!late) {
-				/* then add late stuff */
-				delay += 60000000;
-				late = 1;
-			}
-			delay += 15000000; /* 15 seconds in between */
-		} else {
-			delay += ((1 << (entry->prio + 1)) * DELAY_UNIT);
-		}
-		dprintf("Queueing %s:%s with prio %d at %d", entry->file, entry->exec, entry->prio, delay);
-
-		/*
-		 *  do some semi-synchronization:
-		 *
-		 * - stop forking if we are going to the next prio step
-		 * - wait until the system settles a bit
-		 */
-
-		if (entry->prio != last_prio)
+		if ((entry->prio != last_prio) || (entry->prio >= 3))
 			do_timeout();
 		last_prio = entry->prio;
 
