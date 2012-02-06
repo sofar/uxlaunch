@@ -26,6 +26,7 @@ extern char dpinum[];
 
 extern int session_pid;
 extern int xpid;
+extern int settle;
 
 extern int verbose;
 extern int x_session_only;

@@ -37,6 +37,7 @@ char addn_xopts[256] = "";
 
 int verbose = 0;
 int x_session_only = 0;
+int settle = 0;
 
 static struct option opts[] = {
 #ifdef ENABLE_CHOOSER
@@ -46,6 +47,7 @@ static struct option opts[] = {
 	{ "tty",      1, NULL, 't' },
 	{ "session",  1, NULL, 's' },
 	{ "xsession", 0, NULL, 'x' },
+	{ "settle",   0, NULL, 'S' },
 	{ "help",     0, NULL, 'h' },
 	{ "verbose",  0, NULL, 'v' },
 	{ 0, 0, NULL, 0}
@@ -62,6 +64,8 @@ void usage(const char *name)
 	printf("  -t, --tty       Start session on alternative tty number\n");
 	printf("  -s, --session   Start a non-default session\n");
 	printf("  -x, --xsession  Start X apps inside an existing X session\n");
+	printf("  -S, --settle    Wait for udev to settle\n");
+	printf("  -n, --nosettle  Do not wait for udev to settle\n");
 	printf("  -v, --verbose   Display lots of output to the console\n");
 	printf("  -h, --help      Display this help message\n");
 }
@@ -205,6 +209,8 @@ void get_options(int argc, char **argv)
 				tty = atoi(val);
 			if (!strcmp(key, "session"))
 				strncpy(session, val, 256);
+			if (!strcmp(key, "settle"))
+				settle = atoi(val);
 			if (!strcmp(key, "dpi"))
 				strncpy(dpinum, val, 256);
 			if (!strcmp(key, "xopts")) {
@@ -218,9 +224,9 @@ void get_options(int argc, char **argv)
 	while (1) {
 		c = getopt_long(argc, argv,
 #ifdef ENABLE_CHOOSER
-				"c:u:t:s:hvx",
+				"c:u:t:s:Shvx",
 #else
-				"u:t:s:hvx",
+				"u:t:s:Shvx",
 #endif
 				opts, &i);
 		if (c == -1)
@@ -240,6 +246,9 @@ void get_options(int argc, char **argv)
 			break;
 		case 's':
 			strncpy(session, optarg, 256);
+			break;
+		case 'S':
+			settle = 1;
 			break;
 		case 'h':
 			usage(argv[0]);
