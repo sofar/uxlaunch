@@ -40,7 +40,7 @@ void setup_chooser(void)
 	shm_id = shmget(IPC_PRIVATE, shm_size,
 		IPC_CREAT | IPC_EXCL | S_IRGRP | S_IWGRP);
 		//IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
-	shm = (uxlaunch_chooser_shm *)shmat(shm_id, 0, 0);
+	shm = (uxlaunch_chooser_shm *)shmat(shm_id, NULL, 0);
 	if (shm == (void*)-1) {
 		lprintf("chooser: Unable to allocate SHM, abort\n");
 		return;
@@ -89,7 +89,7 @@ void setup_chooser(void)
 		}
 	}
 
-	shmctl(shm_id, IPC_RMID, 0);
+	shmctl(shm_id, IPC_RMID, NULL);
 	setegid(old_gid);
 
 	d_out();

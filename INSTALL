@@ -12,13 +12,14 @@ Step 1 should be trivial.
 
 Step 2, editing the configuration file. This step is optional for single-
 user systems where there is only one user account with a /home/$USER folder.
-In case you need a different desktop than the programmed default (the MeeGo
-netbook UX) started, you can use this configuration file to specify a
-different default session. The configuration file is normally installed
-as /etc/sysconfig/uxlaunch.
+In case you need a different desktop than the programmed default started, you
+can use this configuration file to specify a different default session. The
+configuration file is normally installed as /etc/sysconfig/uxlaunch.
 
 Step 3, configuring your system to start uxlaunch at boot time, should be
-done by inserting the following line in /etc/inittab:
+accomplished by using the provided systemd service file. You may have to
+systemctl enable uxlaunch.service and/or systemctl start uxlaunch.service.
+Or, in case of sysvinit, one cat insert the following line in /etc/inittab:
 
 	x:5:respawn:/usr/sbin/uxlaunch
 

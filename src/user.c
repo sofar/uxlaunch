@@ -30,7 +30,7 @@
 
 #include <X11/Xauth.h>
 
-int uid;
+static int uid;
 struct passwd *pass;
 
 char user_xauth_path[PATH_MAX];
@@ -132,7 +132,7 @@ static void set_backlight_perms(const char *backlight_class)
 	dir = opendir(backlight_class);
 	if (dir) {
 		while (NULL != (entry = readdir (dir))) {
-			if (entry->d_name && entry->d_name[0] != '.' &&
+			if (entry->d_name[0] != '.' &&
 			    entry->d_type == DT_LNK) {
 
 				snprintf(backlight_dir_path,
@@ -185,10 +185,13 @@ void switch_to_user(void)
 		exit(EXIT_FAILURE);
 	}
 
-	if (setpgid(0, getpgid(getppid())) == -1)
-		lprintf("Unable to setpgid()");
-	if (setsid() == -1)
-		lprintf("Unable to setsid()");
+	/* This should fail, so, only print out info when it succeeded */
+	ret = setpgid(0, getpgid(getppid()));
+	if (ret != -1)
+		lprintf("setpgid() returned %d", ret);
+	ret = setsid();
+	if (ret != -1)
+		lprintf("setsid returned %d", ret);
 
 	do_env();
 

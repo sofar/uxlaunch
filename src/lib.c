@@ -29,7 +29,7 @@ extern char **environ;
 
 static int first_time = 1;
 
-struct timeval start;
+static struct timeval start;
 
 
 void lprintf(const char* fmt, ...)

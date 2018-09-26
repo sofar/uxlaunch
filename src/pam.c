@@ -24,8 +24,8 @@
 
 #include "uxlaunch.h"
 
-pam_handle_t *ph;
-struct pam_conv pc;
+static pam_handle_t *ph;
+static struct pam_conv pc;
 
 /*
  * Sometimes PAM likes to chat with you, before it is assured

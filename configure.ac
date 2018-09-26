@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([uxlaunch],[0.64],[auke-jan.h.kok@intel.com])
+AC_INIT([uxlaunch],[0.65],[auke-jan.h.kok@intel.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_SRCDIR([src/uxlaunch.c])
@@ -55,8 +55,17 @@ AC_ARG_WITH([systemdunitdir], AC_HELP_STRING([--with-systemdunitdir=DIR],
 if (test -n "${path_systemdunit}"); then
 SYSTEMD_UNITDIR="${path_systemdunit}"
 AC_SUBST(SYSTEMD_UNITDIR)
-fi
 AM_CONDITIONAL(SYSTEMD, test -n "${path_systemdunit}")
+fi
+
+echo "Checking for default username to logon... "
+AC_ARG_WITH([default_username], AC_HELP_STRING([--with-default-username=USER],
+	[default username to logon (default: unset)]), [default_username=${withval}],)
+if (test -n "${default_username}"); then
+	AC_DEFINE_UNQUOTED([DEFAULT_USERNAME], ["$default_username"], [Which user to logon])
+else
+	AC_ERROR([Required value for --with-default-username=<USER> is missing.])
+fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h sys/time.h syslog.h unistd.h])
@@ -78,7 +87,9 @@ AC_CHECK_FUNCS([clock_gettime gettimeofday memset mkdir setenv strchr strdup str
 AC_OUTPUT(uxlaunch.service)
 
 echo
-echo "Build configuration:"
+echo "Build configuration - $PACKAGE_NAME $VERSION"
+echo
+echo "Default username : $default_username"
 echo
 echo "Library support:"
 echo -n " * ConsoleKit : "

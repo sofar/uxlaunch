@@ -31,7 +31,7 @@ int tty = 1;
 char chooser[256] = "";
 #endif
 char session[256] = "default";
-char username[256] = "meego";
+char username[256] = DEFAULT_USERNAME;
 char dpinum[256] = "auto";
 char addn_xopts[256] = "";
 
@@ -50,11 +50,11 @@ static struct option opts[] = {
 	{ "settle",   0, NULL, 'S' },
 	{ "help",     0, NULL, 'h' },
 	{ "verbose",  0, NULL, 'v' },
-	{ 0, 0, NULL, 0}
+	{ NULL, 0, NULL, 0 }
 };
 
 
-void usage(const char *name)
+static void usage(const char *name)
 {
 	printf("Usage: %s [OPTION...] [-- [session cmd] [session args]]\n", name);
 #ifdef ENABLE_CHOOSER
@@ -153,12 +153,13 @@ void get_options(int argc, char **argv)
 		/* check if this is actually a valid user */
 		p = getpwnam(u);
 		if (!p)
-			continue; // FIXME: small leak
+			goto next;
 		/* and make sure this is actually the guys homedir */
 		snprintf(buf, 80, "/home/%s", u);
 		if (strcmp(p->pw_dir, buf))
-			continue; // FIXME: small leak
-		strncpy(username, u, 256);
+			goto next;
+		strncpy(username, u, sizeof(username) - 1);
+next:
 		free(u);
 	}
 	if (dir)
@@ -201,20 +202,20 @@ void get_options(int argc, char **argv)
 
 #ifdef ENABLE_CHOOSER
 			if (!strcmp(key, "chooser"))
-				strncpy(chooser, val, 256);
+				strncpy(chooser, val, sizeof(chooser) - 1);
 #endif
 			if (!strcmp(key, "user"))
-				strncpy(username, val, 256);
+				strncpy(username, val, sizeof(username) - 1);
 			if (!strcmp(key, "tty"))
 				tty = atoi(val);
 			if (!strcmp(key, "session"))
-				strncpy(session, val, 256);
+				strncpy(session, val, sizeof(session) - 1);
 			if (!strcmp(key, "settle"))
 				settle = atoi(val);
 			if (!strcmp(key, "dpi"))
-				strncpy(dpinum, val, 256);
+				strncpy(dpinum, val, sizeof(dpinum) - 1);
 			if (!strcmp(key, "xopts")) {
-			        strncpy(addn_xopts, val, 256);
+			        strncpy(addn_xopts, val, sizeof(addn_xopts) - 1);
 			}
  		}
 		fclose(f);
@@ -235,17 +236,17 @@ void get_options(int argc, char **argv)
 		switch (c) {
 #ifdef ENABLE_CHOOSER
 		case 'c':
-			strncpy(chooser, optarg, 256);
+			strncpy(chooser, optarg, sizeof(chooser) - 1);
 			break;
 #endif
 		case 'u':
-			strncpy(username, optarg, 256);
+			strncpy(username, optarg, sizeof(username) - 1);
 			break;
 		case 't':
 			tty = atoi(optarg);
 			break;
 		case 's':
-			strncpy(session, optarg, 256);
+			strncpy(session, optarg, sizeof(session) - 1);
 			break;
 		case 'S':
 			settle = 1;
@@ -260,7 +261,7 @@ void get_options(int argc, char **argv)
 		case 'x':
 			x_session_only = 1;
 			if (getenv ("USER"))
-				strncpy (username, getenv ("USER"), 256);
+				strncpy (username, getenv ("USER"), sizeof(username) - 1);
 			break;
 		default:
 			break;

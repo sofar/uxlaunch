@@ -36,7 +36,7 @@ struct oom_adj_struct {
 static int oom_pipe[2];
 
 
-void start_oom_task()
+void start_oom_task(void)
 {
 	struct oom_adj_struct request;
 	pid_t pid;
@@ -95,7 +95,7 @@ void start_oom_task()
 }
 
 
-void stop_oom_task()
+void stop_oom_task(void)
 {
 	d_in();
 	close(oom_pipe[1]);

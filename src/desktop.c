@@ -37,8 +37,8 @@
 
 
 int session_pid;
-gchar *session_filter = NULL;
-gchar *session_exec = NULL;
+static gchar *session_filter = NULL;
+static gchar *session_exec = NULL;
 static int delay = 0;
 
 /*
@@ -141,7 +141,7 @@ overwrite:
 }
 
 
-gint sort_entries(gconstpointer a, gconstpointer b)
+static gint sort_entries(gconstpointer a, gconstpointer b)
 {
 	const struct desktop_entry_struct *A = a, *B = b;
 
@@ -202,19 +202,9 @@ static void do_desktop_file(const gchar *dir, const gchar *file)
 
 	onlyshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "OnlyShowIn", NULL);
 	notshowin_key = g_key_file_get_string(keyfile, "Desktop Entry", "NotShowIn", NULL);
-	prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-MeeGo-Priority", NULL);
-	if (!prio_key)
-		prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-Priority", NULL);
-	if (!prio_key)
-		prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-Priority", NULL);
-
-	onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-OnlyStartIfFileExists", NULL);
-	if (!onlystart_key)
-		onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-OnlyStartIfFileExists", NULL);
-
-	dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-DontStartIfFileExists", NULL);
-	if (!dontstart_key)
-		dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Moblin-DontStartIfFileExists", NULL);
+	prio_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Priority", NULL);
+	onlystart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-OnlyStartIfFileExists", NULL);
+	dontstart_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-DontStartIfFileExists", NULL);
 
 	/*
 	 * Filtering desktop files is case insensitive, e.g.
@@ -274,12 +264,10 @@ notshowin:
 		else if (g_strstr_len(p, -1, "late"))
 			prio = 3;
 		else
-			lprintf("Unknown value for key X-MeeGo-Priority: %s", prio_key);
+			lprintf("Unknown value for key X-Priority: %s", prio_key);
 	}
 
-	wd_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Meego-Watchdog", NULL);
-	if (!wd_key)
-		wd_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-MeeGo-Watchdog", NULL);
+	wd_key = g_key_file_get_string(keyfile, "Desktop Entry", "X-Watchdog", NULL);
 	if (wd_key) {
 		gchar *p = g_utf8_casefold(wd_key, g_utf8_strlen(wd_key, -1));
 		if (g_strstr_len(p, -1, "halt"))
@@ -289,7 +277,7 @@ notshowin:
 		else if (g_strstr_len(p, -1, "fail"))
 			wd = WD_FAIL;
 		else
-			lprintf("Unknown value for key X-Meego-Watchdog: %s", wd_key);
+			lprintf("Unknown value for key X-Watchdog: %s", wd_key);
 	}
 
 	desktop_entry_add(file, g_shell_unquote(exec_key, &error), prio, wd);
@@ -444,7 +432,7 @@ static int entry_is_reg(const gchar *dir, const struct dirent *entry)
 	return 0;
 }
 
-void do_dir(const gchar *dir)
+static void do_dir(const gchar *dir)
 {
 	DIR *d;
 	struct dirent *entry;
@@ -466,8 +454,8 @@ void do_dir(const gchar *dir)
 
 			do_desktop_file(dir, entry->d_name);
 		}
+		closedir(d);
 	}
-	closedir(d);
 }
 
 /*
@@ -517,7 +505,7 @@ void autostart_desktop_files(void)
 }
 
 
-int uptime(float *up)
+static int uptime(float *up)
 {
 	FILE *uptime;
 	int ret;
@@ -531,6 +519,7 @@ int uptime(float *up)
 	ret = fscanf(uptime, "%*f %f", up);
 	if (ret < 1) {
 		lprintf("Error reading /proc/uptime (%d)! disabling synchronization!", ret);
+		fclose(uptime);
 		return -1;
 	}
 
@@ -539,7 +528,7 @@ int uptime(float *up)
 }
 
 
-void do_timeout(void)
+static void do_timeout(void)
 {
 	float in, out;
 	int c = 0;

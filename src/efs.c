@@ -21,7 +21,7 @@
 #include "uxlaunch.h"
 
 
-static int ecryptfs_automount_set()
+static int ecryptfs_automount_set(void)
 {
 	const char *homedir = pass->pw_dir;
 	char *file_path;
@@ -79,7 +79,7 @@ static int grep(const char *filename, const char *pattern)
 /*
  * Check if the homedir is already mounted
  */
-static int ecryptfs_mounted()
+static int ecryptfs_mounted(void)
 {
 	char *search_pattern;
 

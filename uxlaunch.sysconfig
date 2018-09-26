@@ -14,13 +14,4 @@
 # session=default
 #
 # Sessions should point to /usr/share/xsessions/<session>.desktop files.
-# Example session names:
-# x-meego-nb   : MeeGo Netbook UX
-# x-meego-hs   : MeeGo Handset UX
-# x-meego-tb   : MeeGo Tablet UX
-# x-meego-ivi  : MeeGo Automotive UX
-# x-meego-tv   : MeeGo connected TV UX
-# xfce         : Xfce4 desktop environment
-# gnome        : gnome-shell desktop
-# XBMC         : XBox Media Center
 #

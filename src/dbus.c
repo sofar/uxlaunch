@@ -50,18 +50,18 @@ void start_dbus_session_bus(void)
 	lprintf("launching session bus: %s", cmd);
 
 	ret = system(cmd);
-	if (!ret)
-		lprintf("Error starting session dbus-daemon... dbus may not be functional");
+	if (ret)
+		lprintf("Error starting session dbus-daemon(%d)... dbus may not be functional", ret);
 
 	close(p_fd[1]);
 	close(a_fd[1]);
 
 	result = read(p_fd[0], dbus_pid, sizeof(dbus_pid));
 	if (result <= 0)
-		lprintf("Error reading from dbus pipes... dbus may not be functional");
+		lprintf("Error reading from dbus pipes(%d)... dbus may not be functional", result);
 	result = read(a_fd[0], dbus_address, sizeof(dbus_address));
 	if (result <= 0)
-		lprintf("Error reading from dbus pipes... dbus may not be functional");
+		lprintf("Error reading from dbus pipes(%d)... dbus may not be functional", result);
 
 	/* chomp() */
 	dbus_pid[strlen(dbus_pid) - 1] = '\0';
